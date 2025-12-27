@@ -1,0 +1,335 @@
+---
+title: Shirt Color Selection Problem Part 3
+subtitle: Proper Optimization
+author: Ian McCabe
+date: January 2026
+format:
+  html:
+    code-fold: true
+execute: 
+  cache: true
+jupyter: python3
+---
+
+# Overview
+
+In [Part 1](https://ian-p-mccabe.github.io/shirt-color-space/) and [Part 2](https://ian-p-mccabe.github.io/shirt-color-space/part_2/) we explored the issues facing the Stonewall Dodgeball league when selecting shirt colors. In Part 1 we found the best way to add additional colors to the league and in Part 2 we explored heuristics for finding the best subset of colors for the league. 
+
+Part 3 will expand on part 2, introducing proper optimization methods for color selection. We will begin by showing how to select the best (most diverse) n colors for the league and then expand on this by taking into account team preference.
+
+Lets begin by loading in our color options.
+
+
+```{python}
+import numpy
+import pandas as pd
+from colormath import color_objects, color_diff
+import math
+
+# This exists to resolve an issue with the colormath library 
+def patch_asscalar(a):
+    return a.item()
+setattr(numpy, "asscalar", patch_asscalar)
+
+color_df = pd.read_csv("data/all_colors.csv")
+```
+
+# Remember there are a lot of options!
+![Solid Colors](./assets/SolidColors.png)
+![Heather Colors](./assets/HeatherColors.png)
+
+I am using python's colormath library so lets load the colors as LabColor objects.
+
+```{python}
+lab_string = list(color_df["L*a*b Value"])
+lab_strings = [color_string.split(", ") for color_string in lab_string]
+
+lab_floats = [[float(x) for x in row] for row in lab_strings]
+
+lab_colors = [color_objects.LabColor(lab_l=lab_color[0], lab_a=lab_color[1], lab_b=lab_color[2]) for lab_color in lab_floats]
+```
+
+And load some helper functions.
+
+```{python}
+from IPython.display import HTML
+
+def display_color_swatches(hex_colors, names=None, size="40px", label=None):
+    """Display color swatches in a row with optional label"""
+    html = "<div style='display: flex; align-items: center; gap: 10px;'>"
+    
+    if label:
+        html += f"<span style='min-width: 150px; font-size: 14px;'>{label}</span>"
+    
+    html += "<div style='display: flex; gap: 2px;'>"
+    for i, hex_color in enumerate(hex_colors):
+        title = names[i] if names else hex_color
+        html += f"<div title='{title}' style='width: {size}; height: {size}; background-color: #{hex_color}; border: 1px solid #ccc;'></div>"
+    html += "</div></div>"
+    
+    return HTML(html)
+```
+
+
+Remember, we need a metric for defining color difference. For best results we will use the [CIEDE2000 distance](https://en.wikipedia.org/wiki/Color_difference#CIEDE2000). Color differences are returned as a number of ∆ E units.
+
+# Delta E Values and Perceptibility
+
+| Delta E (ΔE) | Perceptibility | Description |
+|--------------|-----------------|-------------|
+| < 1 | Imperceptible | Colors appear identical to most observers |
+| 1–2 | Very Slight | Only experts notice the difference |
+| 2–10 | Noticeable | Average person notices on close inspection |
+| 10–20 | Obvious | Clearly different colors |
+| > 20 | Very Distinct | Colors are dramatically different |
+
+For **shirt color selection**, we will use:
+
+- **ΔE > 10**: Safe choice, easily distinguishable in all conditions
+- **ΔE 5–10**: Acceptable if team choices are prioritized over maximum distinctness
+- **ΔE < 5**: Risk of confusion, too similar
+
+## Examples
+
+
+::: {.grid}
+
+::: {.g-col-6}
+
+---
+These two colors are **2** units apart:
+```{python}
+#|output: true
+display_color_swatches(hex_colors=[color_df.iloc[8]['Hex'], color_df.iloc[55]['Hex']])
+```
+---
+
+
+These two colors are **10** units apart:
+```{python}
+#|output: true
+display_color_swatches([color_df.iloc[0]['Hex'], color_df.iloc[46]['Hex']])
+```
+---
+
+These two colors are **20** units apart:
+```{python}
+#|output: true
+display_color_swatches([color_df.iloc[1]['Hex'], color_df.iloc[68]['Hex']])
+```
+---
+
+:::
+
+::: {.g-col-6}
+
+---
+
+These two colors are **30** units apart:
+
+```{python}
+#| output: true
+display_color_swatches([color_df.iloc[0]['Hex'], color_df.iloc[1]['Hex']])
+```
+---
+
+And these two colors are **80** units apart:
+```{python}
+#| output: true
+display_color_swatches([color_df.iloc[6]['Hex'], color_df.iloc[46]['Hex']])
+```
+---
+
+:::
+
+:::
+
+
+## Building the Distance Matrix
+
+
+```{python}
+#| output: true
+def build_distance_matrix():
+  distance_matrix = {}
+  for i, color1 in enumerate(lab_colors):
+      for j, color2 in enumerate(lab_colors):
+          if i != j:
+            distance_matrix[(i, j)] = round( #Want integer values
+              color_diff.delta_e_cie2000(color1=color1, color2=color2)
+              )
+  
+  return distance_matrix
+  
+distance_matrix = build_distance_matrix()
+```
+
+How the distance matrix works:
+
+```{python}
+#| code-fold: false
+
+print(f"Color 0: {color_df.iloc[0]['Color Name']}")
+print(f"Color 1: {color_df.iloc[1]['Color Name']}")
+print(f"Distance from Aqua (color 0) to Army (color 1) is {distance_matrix[(0,1)]} Delta E units")
+display_color_swatches([color_df.iloc[0]['Hex'], color_df.iloc[1]['Hex']])
+```
+
+# Finding the best colors
+
+## Maximum Pairwise Distance
+
+We are going to start by solving the main question from part 2: 
+**What is the best set of n colors for the league?**
+
+
+```{python}
+#| code-fold: true
+from ortools.sat.python import cp_model
+
+model = cp_model.CpModel()
+
+num_colors = 103
+num_colors_to_select = 16
+
+# x[c] = 1 if color c is selected
+x = {c: model.NewBoolVar(f'select_color_{c}') for c in range(num_colors)}
+
+# Constraint: Select exactly n colors
+model.Add(sum(x[c] for c in range(num_colors)) == num_colors_to_select)
+
+# Objective: Maximize total pairwise distance
+objective_terms = []
+for i in range(num_colors):
+    for j in range(i + 1, num_colors):
+        if (i, j) in distance_matrix:
+            dist = distance_matrix[(i, j)]
+        elif (j, i) in distance_matrix:
+            dist = distance_matrix[(j, i)]
+        else:
+            continue
+        
+        # pair_var = 1 if both x[i] and x[j] are selected
+        pair_var = model.NewBoolVar(f'pair_{i}_{j}')
+        model.AddBoolAnd([x[i], x[j]]).OnlyEnforceIf(pair_var)
+        model.AddBoolOr([x[i].Not(), x[j].Not()]).OnlyEnforceIf(pair_var.Not())
+        
+        objective_terms.append(dist * pair_var)
+
+model.Maximize(sum(objective_terms))
+
+# Solve
+solver = cp_model.CpSolver()
+solver.parameters.max_time_in_seconds = 5  # Optional time limit
+status = solver.Solve(model)
+
+# Extract results
+if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
+    selected_colors = [c for c in range(num_colors) if solver.Value(x[c]) == 1]
+    
+    # Calculate average distance
+    total_dist = 0
+    count = 0
+    for i in selected_colors:
+        for j in selected_colors:
+            if i < j:
+                dist = distance_matrix.get((i, j)) or distance_matrix.get((j, i), 0)
+                total_dist += dist
+                count += 1
+    
+    avg_dist = total_dist / count if count > 0 else 0
+    print(f"Selected colors: {selected_colors}")
+    print(f"Average distance: {avg_dist}")
+    print(f"Status: {'OPTIMAL' if status == cp_model.OPTIMAL else 'FEASIBLE'}")
+else:
+    print(f"Solver failed with status: {solver.StatusName(status)}")
+```
+
+We obtain the following palette
+
+```{python}
+from utils import display_palette
+
+display_palette(selected_colors=selected_colors, color_df=color_df)
+```
+
+```{python}
+#| output: false
+import seaborn as sns
+import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
+
+from colorsys import rgb_to_hsv
+
+import matplotlib.patches as patches
+
+def hex_to_hsv(hex_color):
+    """Convert hex color to HSV tuple (hue, saturation, value)"""
+    hex_color = hex_color.lstrip('#')
+    r, g, b = [int(hex_color[i:i+2], 16) / 255.0 for i in (0, 2, 4)]
+    h, s, v = rgb_to_hsv(r, g, b)
+    return (h, s, v)
+
+def adjust_hue_for_rainbow(hex_color):
+    """Adjust hue so red starts at beginning (red -> yellow -> green -> blue -> magenta -> red)"""
+    h, s, v = hex_to_hsv(hex_color)
+    # Rotate hue by -0.1 so red (which is ~0) starts first
+    h = (h + 0.15) % 1.0
+    return (h, s, v)
+
+def plot_distance_heatmap(selected_colors, distance_matrix, color_df, filepath=None):
+    n = len(selected_colors)
+    names = [color_df.iloc[c]['Color Name'] + " "*7 for c in selected_colors]
+    hex_colors = [color_df.iloc[c]['Hex'] for c in selected_colors]
+    
+    # Build distance matrix for selected colors
+    matrix = []
+    for i in selected_colors:
+        row = []
+        for j in selected_colors:
+            if i == j:
+                row.append(0)
+            else:
+                dist = distance_matrix.get((i, j)) or distance_matrix.get((j, i), 0)
+                row.append(dist)
+        matrix.append(row)
+    
+    fig, ax = plt.subplots(figsize=(14, 12))
+    sns.heatmap(matrix, xticklabels=names, yticklabels=names, 
+                annot=True, fmt='.1f', cmap='RdYlGn', 
+                vmin=0, vmax=60, cbar_kws={'label': 'Color Difference (ΔE)'},
+                ax=ax)
+    
+    # Add color swatches to y-axis (left side)
+    for i, hex_color in enumerate(hex_colors):
+        rect = mpatches.Rectangle((-0.04, (n - i - 1) / n), 0.03, 1 / n, 
+                                  facecolor='#' + hex_color, edgecolor='black', linewidth=0.5,
+                                  transform=ax.transAxes, clip_on=False)
+        ax.add_patch(rect)
+    
+    # Add color swatches to x-axis (top side) - using figure coordinates
+    for i, hex_color in enumerate(hex_colors):
+        rect = mpatches.Rectangle((i / n, -0.04), 1 / n, 0.03,
+                                  facecolor='#' + hex_color, edgecolor='black', linewidth=0.5,
+                                  transform=ax.transAxes, clip_on=False)
+        ax.add_patch(rect)
+    
+    ax.set_title('Color Distinguishability (higher = more different)', pad=20)
+    plt.tight_layout()
+
+    plt.savefig(filepath)
+    
+```
+
+```{python}
+#| output: false
+selected_colors.sort(key=lambda c: adjust_hue_for_rainbow(color_df.iloc[c]['Hex']))
+
+plot_distance_heatmap(selected_colors, distance_matrix, color_df, filepath="assets/max_pairwise.svg")
+```
+
+![Heatmap Showing Pairwise Distances Between Colors](assets/max_pairwise.svg)
+
+## Maximize the Minimum Distance Test 
+
+jaaa

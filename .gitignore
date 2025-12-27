@@ -54,3 +54,23 @@ htmlcov/
 
 # Sphinx documentation
 docs/_build/
+
+# Quarto
+/.quarto/
+**/*.quarto_ipynb
+_site/
+_freeze/
+_metadata.json
+*.html
+!index.html
+
+# Quarto cache and temporary files
+.quarto_cache/
+.quarto/
+*_files/
+*_cache/
+
+# Rendered outputs (if keeping only source)
+# Uncomment if you want to ignore rendered HTML files
+# *.html
+# !index.html
