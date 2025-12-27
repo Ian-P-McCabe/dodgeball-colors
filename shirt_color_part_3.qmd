@@ -180,7 +180,10 @@ display_color_swatches([color_df.iloc[0]['Hex'], color_df.iloc[1]['Hex']])
 ## Maximum Pairwise Distance
 
 We are going to start by solving the main question from part 2: 
+
 **What is the best set of n colors for the league?**
+
+We will start by selecting the best **16** colors. 
 
 
 ```{python}
@@ -245,91 +248,31 @@ else:
     print(f"Solver failed with status: {solver.StatusName(status)}")
 ```
 
-We obtain the following palette
+We obtain the following palette:
 
 ```{python}
-from utils import display_palette
+#| output: false 
+from utils import display_palette, adjust_hue_for_rainbow
 
-display_palette(selected_colors=selected_colors, color_df=color_df)
-```
-
-```{python}
-#| output: false
-import seaborn as sns
-import matplotlib.patches as mpatches
-import matplotlib.pyplot as plt
-
-from colorsys import rgb_to_hsv
-
-import matplotlib.patches as patches
-
-def hex_to_hsv(hex_color):
-    """Convert hex color to HSV tuple (hue, saturation, value)"""
-    hex_color = hex_color.lstrip('#')
-    r, g, b = [int(hex_color[i:i+2], 16) / 255.0 for i in (0, 2, 4)]
-    h, s, v = rgb_to_hsv(r, g, b)
-    return (h, s, v)
-
-def adjust_hue_for_rainbow(hex_color):
-    """Adjust hue so red starts at beginning (red -> yellow -> green -> blue -> magenta -> red)"""
-    h, s, v = hex_to_hsv(hex_color)
-    # Rotate hue by -0.1 so red (which is ~0) starts first
-    h = (h + 0.15) % 1.0
-    return (h, s, v)
-
-def plot_distance_heatmap(selected_colors, distance_matrix, color_df, filepath=None):
-    n = len(selected_colors)
-    names = [color_df.iloc[c]['Color Name'] + " "*7 for c in selected_colors]
-    hex_colors = [color_df.iloc[c]['Hex'] for c in selected_colors]
-    
-    # Build distance matrix for selected colors
-    matrix = []
-    for i in selected_colors:
-        row = []
-        for j in selected_colors:
-            if i == j:
-                row.append(0)
-            else:
-                dist = distance_matrix.get((i, j)) or distance_matrix.get((j, i), 0)
-                row.append(dist)
-        matrix.append(row)
-    
-    fig, ax = plt.subplots(figsize=(14, 12))
-    sns.heatmap(matrix, xticklabels=names, yticklabels=names, 
-                annot=True, fmt='.1f', cmap='RdYlGn', 
-                vmin=0, vmax=60, cbar_kws={'label': 'Color Difference (ΔE)'},
-                ax=ax)
-    
-    # Add color swatches to y-axis (left side)
-    for i, hex_color in enumerate(hex_colors):
-        rect = mpatches.Rectangle((-0.04, (n - i - 1) / n), 0.03, 1 / n, 
-                                  facecolor='#' + hex_color, edgecolor='black', linewidth=0.5,
-                                  transform=ax.transAxes, clip_on=False)
-        ax.add_patch(rect)
-    
-    # Add color swatches to x-axis (top side) - using figure coordinates
-    for i, hex_color in enumerate(hex_colors):
-        rect = mpatches.Rectangle((i / n, -0.04), 1 / n, 0.03,
-                                  facecolor='#' + hex_color, edgecolor='black', linewidth=0.5,
-                                  transform=ax.transAxes, clip_on=False)
-        ax.add_patch(rect)
-    
-    ax.set_title('Color Distinguishability (higher = more different)', pad=20)
-    plt.tight_layout()
-
-    plt.savefig(filepath)
-    
-```
-
-```{python}
-#| output: false
 selected_colors.sort(key=lambda c: adjust_hue_for_rainbow(color_df.iloc[c]['Hex']))
 
-plot_distance_heatmap(selected_colors, distance_matrix, color_df, filepath="assets/max_pairwise.svg")
+display_palette(selected_colors=selected_colors, color_df=color_df, filepath="assets/max_pairwise_palette.svg")
 ```
 
-![Heatmap Showing Pairwise Distances Between Colors](assets/max_pairwise.svg)
+![Color Palette](assets/max_pairwise_palette.svg)
+
+We can also create a heatmap showing how close the colors are.
+
+```{python}
+#| output: false
+from utils import plot_distance_heatmap
+
+plot_distance_heatmap(selected_colors, distance_matrix, color_df, filepath="assets/max_pairwise_heatmap.svg")
+```
+
+![Heatmap Showing Pairwise Distances Between Colors](assets/max_pairwise_heatmap.svg)
+
+Generally we have done a good job, however adjacent colors are still pretty similar. For example Maroon and Heather Cardinal are almost unacceptably close. 
 
 ## Maximize the Minimum Distance Test 
 
-jaaa

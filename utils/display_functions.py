@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import seaborn as sns
+import pandas as pd 
 
-def display_palette(selected_colors: list[int], color_df, cols=None):
+def display_palette(selected_colors: list[int], color_df: pd.DataFrame, filepath: str, cols=None):
 
     hex_colors = [color_df.iloc[c]['Hex'] for c in selected_colors]
     color_names = [color_df.iloc[c]['Color Name'] for c in selected_colors]
@@ -44,5 +46,47 @@ def display_palette(selected_colors: list[int], color_df, cols=None):
         ax[row, col].axis('off')
     
     plt.tight_layout()
-    plt.savefig("assets/testgrid.svg")
-    plt.show()
+    plt.savefig(filepath)
+
+
+def plot_distance_heatmap(selected_colors: list[int], distance_matrix, color_df: pd.DataFrame, filepath: str):
+    n = len(selected_colors)
+    names = [color_df.iloc[c]['Color Name'] + " "*7 for c in selected_colors]
+    hex_colors = [color_df.iloc[c]['Hex'] for c in selected_colors]
+    
+    # Build distance matrix for selected colors
+    matrix = []
+    for i in selected_colors:
+        row = []
+        for j in selected_colors:
+            if i == j:
+                row.append(0)
+            else:
+                dist = distance_matrix.get((i, j)) or distance_matrix.get((j, i), 0)
+                row.append(dist)
+        matrix.append(row)
+    
+    fig, ax = plt.subplots(figsize=(14, 12))
+    sns.heatmap(matrix, xticklabels=names, yticklabels=names, 
+                annot=True, fmt='.1f', cmap='RdYlGn', 
+                vmin=0, vmax=60, cbar_kws={'label': 'Color Difference (ΔE)'},
+                ax=ax)
+    
+    # Add color swatches to y-axis (left side)
+    for i, hex_color in enumerate(hex_colors):
+        rect = patches.Rectangle((-0.04, (n - i - 1) / n), 0.03, 1 / n, 
+                                  facecolor='#' + hex_color, edgecolor='black', linewidth=0.5,
+                                  transform=ax.transAxes, clip_on=False)
+        ax.add_patch(rect)
+    
+    # Add color swatches to x-axis (top side) - using figure coordinates
+    for i, hex_color in enumerate(hex_colors):
+        rect = patches.Rectangle((i / n, -0.04), 1 / n, 0.03,
+                                  facecolor='#' + hex_color, edgecolor='black', linewidth=0.5,
+                                  transform=ax.transAxes, clip_on=False)
+        ax.add_patch(rect)
+    
+    ax.set_title('Color Distinguishability (higher = more different)', pad=20)
+    plt.tight_layout()
+
+    plt.savefig(filepath)
