@@ -19,7 +19,7 @@ page-layout: full
 
 In [Part 1](https://ian-p-mccabe.github.io/shirt-color-space/) and [Part 2](https://ian-p-mccabe.github.io/shirt-color-space/part_2/) we explored the issues facing the Stonewall Dodgeball league when selecting shirt colors. In Part 1 we found the best way to add additional colors to the league and in Part 2 we explored heuristics for finding the best subset of colors for the league so no two colors are too similar. 
 
-Part 3 will expand on part 2, introducing proper optimization methods for color selection. We will begin by showing how to select the best (most diverse) n colors for the league and then expand on this by taking into account team preference.
+Part 3 will expand on part 2, introducing proper optimization methods for color selection. We will begin by showing how to select the best (most diverse) colors for the league and then expand on this by taking into account team preference.
 
 I have decided to keep all code cells hidden for this writeup, but feel free to expand any of the
 codeblocks on this page (denoted by "> Code"). All the source code can be found on my GitHub. 
@@ -43,7 +43,9 @@ color_df = pd.read_csv("data/all_colors.csv")
 
 ## There are a lot of colors!
 
-The dodgeball league provides 103 unique shirt colors to pick from. Eagle eyed readers will see that there are 110 colors lsited below, however I have removed a few duplicate colors from the pool.
+The dodgeball league provides 103 unique shirt colors to pick from. 
+
+Eagle eyed readers will see that there are 110 colors lsited below, however I have removed a few duplicate colors from the pool.
 
 ![Solid Colors](./assets/SolidColors.png)
 ![Heather Colors](./assets/HeatherColors.png)
@@ -62,15 +64,20 @@ lab_colors = [color_objects.LabColor(lab_l=lab_color[0], lab_a=lab_color[1], lab
 
 ![How I got LAB Color Info](./assets/ColorInfoProcess.png)
 
-Most colors in the shirt color palette above have a PMS code beneath them, this stands for Pantone Matching System. 
-PMS is a standardized color system that assigns unique numbers and names to specific colors, enabling designers, printers, manufacturers, 
-and crazy dodgeball players to achieve consistent color production and analysis. 
+In order to accurately determine color difference, we will need to obtain the LAB values for each possible shirt color. 
+The LAB color system is best for this analysis because it accurately represents how humans see and differentiate color. 
 
-Once a color has been located in the Pantone database (via a subscription service  ) we can obtain the LAB color value. 
+LAB color information for most colors can be obtained from the PMS (Pantone Matching System) code beneath the swatch on the color palette. 
+Pantone provides LAB (and other color) information for each color with a PMS code.
 
-For color difference calculations, will use the [CIEDE2000 distance](https://en.wikipedia.org/wiki/Color_difference#CIEDE2000). Color differences are returned as a number of ∆ E units.
+## Color Difference
 
-# Delta E Values and Perceptibility
+Once we have our LAB values, we can easily compute color difference.
+
+For color difference calculations, will use the [CIEDE2000 distance](https://en.wikipedia.org/wiki/Color_difference#CIEDE2000). Color difference is returned as a ∆E value. 
+
+
+### Delta E Values and Color-Difference Perceptibility
 
 | Delta E (ΔE) | Perceptibility | Description |
 |--------------|-----------------|-------------|
@@ -86,8 +93,7 @@ For **shirt color selection**, we will use:
 - **ΔE 5–10**: Acceptable if team choices are prioritized over maximum distinctness
 - **ΔE < 5**: Risk of confusion, too similar
 
-## Examples
-
+### Examples
 
 ::: {.grid}
 
@@ -143,11 +149,23 @@ display_color_swatches([color_df.iloc[6]['Hex'], color_df.iloc[46]['Hex']])
 :::
 
 
-## Building the Distance Matrix
+# Finding the best colors
 
+Now that we have our colors in a format we can properly analyze, we can return to answer our central question:
+
+**What is the best set of shirt colors for the dodgeball league?**
+
+In part 2 we covered why this isn't super easy to compute:
+
+- Analyzing the best combinations of 16 colors yeilds **2,245,547,413,628,550,570** possible combinations! (2 quintillion)
+- Analyzing the best combinations of 24 colors, we must score **178,409,928,551,259,450,861,900** possible combinations! (178 sextillion)
+
+I framed the problem as a a subset of the Maximum Diversity Problem - how can we select the subset of colors that are most distant from each other.
+
+For 
 
 ```{python}
-#| output: true
+#| output: false
 def build_distance_matrix():
   distance_matrix = {}
   for i, color1 in enumerate(lab_colors):
@@ -161,19 +179,6 @@ def build_distance_matrix():
   
 distance_matrix = build_distance_matrix()
 ```
-
-How the distance matrix works:
-
-```{python}
-#| code-fold: false
-
-print(f"Color 0: {color_df.iloc[0]['Color Name']}")
-print(f"Color 1: {color_df.iloc[1]['Color Name']}")
-print(f"Distance from Aqua (color 0) to Army (color 1) is {distance_matrix[(0,1)]} Delta E units")
-display_color_swatches([color_df.iloc[0]['Hex'], color_df.iloc[1]['Hex']])
-```
-
-# Finding the best colors
 
 ```{python}
 num_colors = 103
