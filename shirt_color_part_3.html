@@ -60,7 +60,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="shirt_color_part_3_files/libs/clipboard/clipboard.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="shirt_color_part_3_files/libs/clipboard/clipboard.min.js"></script>
 <script src="shirt_color_part_3_files/libs/quarto-html/quarto.js" type="module"></script>
 <script src="shirt_color_part_3_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="shirt_color_part_3_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
@@ -72,6 +72,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="shirt_color_part_3_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="shirt_color_part_3_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="shirt_color_part_3_files/libs/bootstrap/bootstrap-82a8e0681529fff444bbc39736ff6b3a.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
 
 </head>
@@ -119,7 +122,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>In <a href="https://ian-p-mccabe.github.io/shirt-color-space/">Part 1</a> and <a href="https://ian-p-mccabe.github.io/shirt-color-space/part_2/">Part 2</a> we explored the issues facing the Stonewall Dodgeball league when selecting shirt colors. In Part 1 we found the best way to add additional colors to the league and in Part 2 we explored heuristics for finding the best subset of colors for the league so no two colors are too similar.</p>
 <p>Part 3 will expand on part 2, introducing proper optimization methods for color selection. We will begin by showing how to select the best (most diverse) n colors for the league and then expand on this by taking into account team preference.</p>
 <p>I have decided to keep all code cells hidden for this writeup, but feel free to expand any of the codeblocks on this page (denoted by “&gt; Code”). All the source code can be found on my GitHub.</p>
-<div id="ca07ad25" class="cell" data-execution_count="1">
+<div id="2c5ef76e" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy</span>
@@ -142,7 +145,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="there-are-a-lot-of-colors">There are a lot of colors!</h2>
 <p>The dodgeball league provides 103 unique shirt colors to pick from. Eagle eyed readers will see that there are 110 colors lsited below, however I have removed a few duplicate colors from the pool.</p>
 <p><img src="./assets/SolidColors.png" class="img-fluid" alt="Solid Colors"> <img src="./assets/HeatherColors.png" class="img-fluid" alt="Heather Colors"></p>
-<div id="5a7a6cd1" class="cell" data-execution_count="2">
+<div id="de05b1d6" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>lab_string <span class="op">=</span> <span class="bu">list</span>(color_df[<span class="st">"L*a*b Value"</span>])</span>
@@ -217,47 +220,62 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="g-col-6">
 <hr>
 <p>These two colors are <strong>2</strong> units apart:</p>
-<div id="07fb375e" class="cell" data-execution_count="3">
+<div id="1ed65308" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> utils <span class="im">import</span> display_color_swatches</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>display_color_swatches(hex_colors<span class="op">=</span>[color_df.iloc[<span class="dv">8</span>][<span class="st">'Hex'</span>], color_df.iloc[<span class="dv">55</span>][<span class="st">'Hex'</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div style="display: flex; align-items: center; gap: 10px;"><div style="display: flex; gap: 2px;"><div title="423A31" style="width: 40px; height: 40px; background-color: #423A31; border: 1px solid #ccc;"></div><div title="454038" style="width: 40px; height: 40px; background-color: #454038; border: 1px solid #ccc;"></div></div></div>
+</div>
 </div>
 <hr>
 <p>These two colors are <strong>10</strong> units apart:</p>
-<div id="33aa508d" class="cell" data-execution_count="4">
+<div id="c83e1569" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>display_color_swatches([color_df.iloc[<span class="dv">0</span>][<span class="st">'Hex'</span>], color_df.iloc[<span class="dv">46</span>][<span class="st">'Hex'</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<div style="display: flex; align-items: center; gap: 10px;"><div style="display: flex; gap: 2px;"><div title="4298B5" style="width: 40px; height: 40px; background-color: #4298B5; border: 1px solid #ccc;"></div><div title="00BFB2" style="width: 40px; height: 40px; background-color: #00BFB2; border: 1px solid #ccc;"></div></div></div>
+</div>
 </div>
 <hr>
 <p>These two colors are <strong>20</strong> units apart:</p>
-<div id="1fda644d" class="cell" data-execution_count="5">
+<div id="a0552fc9" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>display_color_swatches([color_df.iloc[<span class="dv">1</span>][<span class="st">'Hex'</span>], color_df.iloc[<span class="dv">68</span>][<span class="st">'Hex'</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<div style="display: flex; align-items: center; gap: 10px;"><div style="display: flex; gap: 2px;"><div title="555D51" style="width: 40px; height: 40px; background-color: #555D51; border: 1px solid #ccc;"></div><div title="48655B" style="width: 40px; height: 40px; background-color: #48655B; border: 1px solid #ccc;"></div></div></div>
+</div>
 </div>
 <hr>
 </div>
 <div class="g-col-6">
 <hr>
 <p>These two colors are <strong>30</strong> units apart:</p>
-<div id="7439963e" class="cell" data-execution_count="6">
+<div id="6f0168b8" class="cell" data-execution_count="6">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>display_color_swatches([color_df.iloc[<span class="dv">0</span>][<span class="st">'Hex'</span>], color_df.iloc[<span class="dv">1</span>][<span class="st">'Hex'</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<div style="display: flex; align-items: center; gap: 10px;"><div style="display: flex; gap: 2px;"><div title="4298B5" style="width: 40px; height: 40px; background-color: #4298B5; border: 1px solid #ccc;"></div><div title="555D51" style="width: 40px; height: 40px; background-color: #555D51; border: 1px solid #ccc;"></div></div></div>
+</div>
 </div>
 <hr>
 <p>And these two colors are <strong>80</strong> units apart:</p>
-<div id="fb7e0c45" class="cell" data-execution_count="7">
+<div id="3bb3dacf" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>display_color_swatches([color_df.iloc[<span class="dv">6</span>][<span class="st">'Hex'</span>], color_df.iloc[<span class="dv">46</span>][<span class="st">'Hex'</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<div style="display: flex; align-items: center; gap: 10px;"><div style="display: flex; gap: 2px;"><div title="C6057B" style="width: 40px; height: 40px; background-color: #C6057B; border: 1px solid #ccc;"></div><div title="00BFB2" style="width: 40px; height: 40px; background-color: #00BFB2; border: 1px solid #ccc;"></div></div></div>
+</div>
 </div>
 <hr>
 </div>
@@ -265,7 +283,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="building-the-distance-matrix" class="level2">
 <h2 class="anchored" data-anchor-id="building-the-distance-matrix">Building the Distance Matrix</h2>
-<div id="3b9d740e" class="cell" data-execution_count="8">
+<div id="aa477274" class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> build_distance_matrix():</span>
@@ -283,22 +301,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </details>
 </div>
 <p>How the distance matrix works:</p>
-<div id="e0fcf266" class="cell" data-execution_count="9">
+<div id="57ab55f8" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Color 0: </span><span class="sc">{</span>color_df<span class="sc">.</span>iloc[<span class="dv">0</span>][<span class="st">'Color Name'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Color 1: </span><span class="sc">{</span>color_df<span class="sc">.</span>iloc[<span class="dv">1</span>][<span class="st">'Color Name'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Distance from Aqua (color 0) to Army (color 1) is </span><span class="sc">{</span>distance_matrix[(<span class="dv">0</span>,<span class="dv">1</span>)]<span class="sc">}</span><span class="ss"> Delta E units"</span>)</span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>display_color_swatches([color_df.iloc[<span class="dv">0</span>][<span class="st">'Hex'</span>], color_df.iloc[<span class="dv">1</span>][<span class="st">'Hex'</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Color 0: Aqua
+Color 1: Army
+Distance from Aqua (color 0) to Army (color 1) is 30 Delta E units</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<div style="display: flex; align-items: center; gap: 10px;"><div style="display: flex; gap: 2px;"><div title="4298B5" style="width: 40px; height: 40px; background-color: #4298B5; border: 1px solid #ccc;"></div><div title="555D51" style="width: 40px; height: 40px; background-color: #555D51; border: 1px solid #ccc;"></div></div></div>
+</div>
 </div>
 </section>
 </section>
 <section id="finding-the-best-colors" class="level1">
 <h1>Finding the best colors</h1>
-<div id="2b70aae3" class="cell" data-execution_count="10">
+<div id="6d4488bf" class="cell" data-execution_count="10">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>num_colors <span class="op">=</span> <span class="dv">103</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>num_colors_to_select <span class="op">=</span> <span class="dv">16</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>solve_time <span class="op">=</span> <span class="dv">5</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>num_colors <span class="op">=</span> <span class="dv">103</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>num_colors_to_select <span class="op">=</span> <span class="dv">16</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>solve_time <span class="op">=</span> <span class="dv">5</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <section id="maximum-pairwise-distance" class="level2">
@@ -306,76 +332,76 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>We are going to start by solving the main question from part 2:</p>
 <p><strong>What is the best set of n colors for the league?</strong></p>
 <p>We will start by selecting the best <strong>16</strong> colors.</p>
-<div id="4656ea77" class="cell" data-execution_count="11">
+<div id="2191adab" class="cell" data-execution_count="11">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> ortools.sat.python <span class="im">import</span> cp_model</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> cp_model.CpModel()</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co"># x[c] = 1 if color c is selected</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> {c: model.NewBoolVar(<span class="ss">f'select_color_</span><span class="sc">{</span>c<span class="sc">}</span><span class="ss">'</span>) <span class="cf">for</span> c <span class="kw">in</span> <span class="bu">range</span>(num_colors)}</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Constraint: Select exactly n colors</span></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>model.Add(<span class="bu">sum</span>(x[c] <span class="cf">for</span> c <span class="kw">in</span> <span class="bu">range</span>(num_colors)) <span class="op">==</span> num_colors_to_select)</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Objective: Maximize total pairwise distance</span></span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>objective_terms <span class="op">=</span> []</span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(num_colors):</span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(i <span class="op">+</span> <span class="dv">1</span>, num_colors):</span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (i, j) <span class="kw">in</span> distance_matrix:</span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>            dist <span class="op">=</span> distance_matrix[(i, j)]</span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> (j, i) <span class="kw">in</span> distance_matrix:</span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>            dist <span class="op">=</span> distance_matrix[(j, i)]</span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>        <span class="co"># pair_var = 1 if both x[i] and x[j] are selected</span></span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>        pair_var <span class="op">=</span> model.NewBoolVar(<span class="ss">f'pair_</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>j<span class="sc">}</span><span class="ss">'</span>)</span>
-<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>        model.AddBoolAnd([x[i], x[j]]).OnlyEnforceIf(pair_var)</span>
-<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>        model.AddBoolOr([x[i].Not(), x[j].Not()]).OnlyEnforceIf(pair_var.Not())</span>
-<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>        objective_terms.append(dist <span class="op">*</span> pair_var)</span>
-<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>model.Maximize(<span class="bu">sum</span>(objective_terms))</span>
-<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Solve</span></span>
-<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>solver <span class="op">=</span> cp_model.CpSolver()</span>
-<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>solver.parameters.max_time_in_seconds <span class="op">=</span> solve_time  <span class="co"># Optional time limit</span></span>
-<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>status <span class="op">=</span> solver.Solve(model)</span>
-<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract results</span></span>
-<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> status <span class="op">==</span> cp_model.OPTIMAL <span class="kw">or</span> status <span class="op">==</span> cp_model.FEASIBLE:</span>
-<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>    selected_colors <span class="op">=</span> [c <span class="cf">for</span> c <span class="kw">in</span> <span class="bu">range</span>(num_colors) <span class="cf">if</span> solver.Value(x[c]) <span class="op">==</span> <span class="dv">1</span>]</span>
-<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calculate average distance</span></span>
-<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>    total_dist <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>    count <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> selected_colors:</span>
-<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> selected_colors:</span>
-<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> i <span class="op">&lt;</span> j:</span>
-<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a>                dist <span class="op">=</span> distance_matrix.get((i, j)) <span class="kw">or</span> distance_matrix.get((j, i), <span class="dv">0</span>)</span>
-<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a>                total_dist <span class="op">+=</span> dist</span>
-<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a>                count <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb11-50"><a href="#cb11-50" aria-hidden="true" tabindex="-1"></a>    avg_dist <span class="op">=</span> total_dist <span class="op">/</span> count <span class="cf">if</span> count <span class="op">&gt;</span> <span class="dv">0</span> <span class="cf">else</span> <span class="dv">0</span></span>
-<span id="cb11-51"><a href="#cb11-51" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Selected colors: </span><span class="sc">{</span>selected_colors<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb11-52"><a href="#cb11-52" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Average distance: </span><span class="sc">{</span>avg_dist<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb11-53"><a href="#cb11-53" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Status: </span><span class="sc">{</span><span class="st">'OPTIMAL'</span> <span class="cf">if</span> status <span class="op">==</span> cp_model<span class="sc">.</span>OPTIMAL <span class="cf">else</span> <span class="st">'FEASIBLE'</span><span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb11-54"><a href="#cb11-54" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
-<span id="cb11-55"><a href="#cb11-55" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Solver failed with status: </span><span class="sc">{</span>solver<span class="sc">.</span>StatusName(status)<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> ortools.sat.python <span class="im">import</span> cp_model</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> cp_model.CpModel()</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co"># x[c] = 1 if color c is selected</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> {c: model.NewBoolVar(<span class="ss">f'select_color_</span><span class="sc">{</span>c<span class="sc">}</span><span class="ss">'</span>) <span class="cf">for</span> c <span class="kw">in</span> <span class="bu">range</span>(num_colors)}</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Constraint: Select exactly n colors</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>model.Add(<span class="bu">sum</span>(x[c] <span class="cf">for</span> c <span class="kw">in</span> <span class="bu">range</span>(num_colors)) <span class="op">==</span> num_colors_to_select)</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Objective: Maximize total pairwise distance</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>objective_terms <span class="op">=</span> []</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(num_colors):</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(i <span class="op">+</span> <span class="dv">1</span>, num_colors):</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (i, j) <span class="kw">in</span> distance_matrix:</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>            dist <span class="op">=</span> distance_matrix[(i, j)]</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> (j, i) <span class="kw">in</span> distance_matrix:</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>            dist <span class="op">=</span> distance_matrix[(j, i)]</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>        <span class="co"># pair_var = 1 if both x[i] and x[j] are selected</span></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>        pair_var <span class="op">=</span> model.NewBoolVar(<span class="ss">f'pair_</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>j<span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>        model.AddBoolAnd([x[i], x[j]]).OnlyEnforceIf(pair_var)</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>        model.AddBoolOr([x[i].Not(), x[j].Not()]).OnlyEnforceIf(pair_var.Not())</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>        objective_terms.append(dist <span class="op">*</span> pair_var)</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>model.Maximize(<span class="bu">sum</span>(objective_terms))</span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Solve</span></span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>solver <span class="op">=</span> cp_model.CpSolver()</span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>solver.parameters.max_time_in_seconds <span class="op">=</span> solve_time  <span class="co"># Optional time limit</span></span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>status <span class="op">=</span> solver.Solve(model)</span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract results</span></span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> status <span class="op">==</span> cp_model.OPTIMAL <span class="kw">or</span> status <span class="op">==</span> cp_model.FEASIBLE:</span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a>    selected_colors <span class="op">=</span> [c <span class="cf">for</span> c <span class="kw">in</span> <span class="bu">range</span>(num_colors) <span class="cf">if</span> solver.Value(x[c]) <span class="op">==</span> <span class="dv">1</span>]</span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calculate average distance</span></span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a>    total_dist <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a>    count <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> selected_colors:</span>
+<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> selected_colors:</span>
+<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> i <span class="op">&lt;</span> j:</span>
+<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a>                dist <span class="op">=</span> distance_matrix.get((i, j)) <span class="kw">or</span> distance_matrix.get((j, i), <span class="dv">0</span>)</span>
+<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a>                total_dist <span class="op">+=</span> dist</span>
+<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a>                count <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a>    avg_dist <span class="op">=</span> total_dist <span class="op">/</span> count <span class="cf">if</span> count <span class="op">&gt;</span> <span class="dv">0</span> <span class="cf">else</span> <span class="dv">0</span></span>
+<span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Selected colors: </span><span class="sc">{</span>selected_colors<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Average distance: </span><span class="sc">{</span>avg_dist<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-53"><a href="#cb12-53" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Status: </span><span class="sc">{</span><span class="st">'OPTIMAL'</span> <span class="cf">if</span> status <span class="op">==</span> cp_model<span class="sc">.</span>OPTIMAL <span class="cf">else</span> <span class="st">'FEASIBLE'</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb12-55"><a href="#cb12-55" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Solver failed with status: </span><span class="sc">{</span>solver<span class="sc">.</span>StatusName(status)<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <p>We obtain the following palette:</p>
-<div id="6d24a7c9" class="cell" data-execution_count="12">
+<div id="8380d1ee" class="cell" data-execution_count="12">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>selected_colors <span class="op">=</span> [<span class="dv">6</span>, <span class="dv">12</span>, <span class="dv">16</span>, <span class="dv">18</span>, <span class="dv">19</span>, <span class="dv">24</span>, <span class="dv">25</span>, <span class="dv">35</span>, <span class="dv">36</span>, <span class="dv">46</span>, <span class="dv">47</span>, <span class="dv">49</span>, <span class="dv">53</span>, <span class="dv">62</span>, <span class="dv">72</span>, <span class="dv">88</span>]</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> utils <span class="im">import</span> display_palette, adjust_hue_for_rainbow</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>selected_colors.sort(key<span class="op">=</span><span class="kw">lambda</span> c: adjust_hue_for_rainbow(color_df.iloc[c][<span class="st">'Hex'</span>]))</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>display_palette(selected_colors<span class="op">=</span>selected_colors, color_df<span class="op">=</span>color_df, filepath<span class="op">=</span><span class="st">"assets/max_pairwise_palette.svg"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>selected_colors <span class="op">=</span> [<span class="dv">6</span>, <span class="dv">12</span>, <span class="dv">16</span>, <span class="dv">18</span>, <span class="dv">19</span>, <span class="dv">24</span>, <span class="dv">25</span>, <span class="dv">35</span>, <span class="dv">36</span>, <span class="dv">46</span>, <span class="dv">47</span>, <span class="dv">49</span>, <span class="dv">53</span>, <span class="dv">62</span>, <span class="dv">72</span>, <span class="dv">88</span>]</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> utils <span class="im">import</span> display_palette, adjust_hue_for_rainbow</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>selected_colors.sort(key<span class="op">=</span><span class="kw">lambda</span> c: adjust_hue_for_rainbow(color_df.iloc[c][<span class="st">'Hex'</span>]))</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>display_palette(selected_colors<span class="op">=</span>selected_colors, color_df<span class="op">=</span>color_df, filepath<span class="op">=</span><span class="st">"assets/max_pairwise_palette.svg"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <div class="quarto-figure quarto-figure-center">
@@ -385,14 +411,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </figure>
 </div>
 <p>We can also create a heatmap showing how close the colors are.</p>
-<div id="35b39e90" class="cell" data-execution_count="13">
+<div id="5883840a" class="cell" data-execution_count="13">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> utils <span class="im">import</span> plot_distance_heatmap</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>plot_distance_heatmap(selected_colors, distance_matrix, color_df, filepath<span class="op">=</span><span class="st">"assets/max_pairwise_heatmap.svg"</span>)</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>selected_colors <span class="op">=</span> [<span class="dv">3</span>, <span class="dv">10</span>, <span class="dv">12</span>, <span class="dv">13</span>, <span class="dv">18</span>, <span class="dv">19</span>, <span class="dv">20</span>, <span class="dv">22</span>, <span class="dv">35</span>, <span class="dv">46</span>, <span class="dv">47</span>, <span class="dv">53</span>, <span class="dv">70</span>, <span class="dv">88</span>, <span class="dv">100</span>, <span class="dv">101</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> utils <span class="im">import</span> plot_distance_heatmap</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>plot_distance_heatmap(selected_colors, distance_matrix, color_df, filepath<span class="op">=</span><span class="st">"assets/max_pairwise_heatmap.svg"</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>selected_colors <span class="op">=</span> [<span class="dv">3</span>, <span class="dv">10</span>, <span class="dv">12</span>, <span class="dv">13</span>, <span class="dv">18</span>, <span class="dv">19</span>, <span class="dv">20</span>, <span class="dv">22</span>, <span class="dv">35</span>, <span class="dv">46</span>, <span class="dv">47</span>, <span class="dv">53</span>, <span class="dv">70</span>, <span class="dv">88</span>, <span class="dv">100</span>, <span class="dv">101</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <div class="quarto-figure quarto-figure-center">
@@ -405,84 +431,84 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="maximize-the-minimum-distance" class="level2">
 <h2 class="anchored" data-anchor-id="maximize-the-minimum-distance">Maximize the Minimum Distance</h2>
-<div id="26fdbbdd" class="cell" data-execution_count="14">
+<div id="82388756" class="cell" data-execution_count="14">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> ortools.sat.python <span class="im">import</span> cp_model</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> cp_model.CpModel()</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co"># x[c] = 1 if color c is selected</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> {c: model.NewBoolVar(<span class="ss">f'select_color_</span><span class="sc">{</span>c<span class="sc">}</span><span class="ss">'</span>) <span class="cf">for</span> c <span class="kw">in</span> <span class="bu">range</span>(num_colors)}</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Constraint: Select exactly n colors</span></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>model.Add(<span class="bu">sum</span>(x[c] <span class="cf">for</span> c <span class="kw">in</span> <span class="bu">range</span>(num_colors)) <span class="op">==</span> num_colors_to_select)</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Find the maximum possible distance for upper bound</span></span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>max_distance <span class="op">=</span> <span class="bu">max</span>(distance_matrix.values())</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="co"># min_dist is the minimum distance we want to maximize</span></span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>min_dist <span class="op">=</span> model.NewIntVar(<span class="dv">0</span>, max_distance, <span class="st">'min_dist'</span>)</span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a><span class="co"># For each pair of colors, if both are selected, their distance must be &gt;= min_dist</span></span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(num_colors):</span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(i <span class="op">+</span> <span class="dv">1</span>, num_colors):</span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (i, j) <span class="kw">in</span> distance_matrix:</span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>            dist <span class="op">=</span> distance_matrix[(i, j)]</span>
-<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> (j, i) <span class="kw">in</span> distance_matrix:</span>
-<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>            dist <span class="op">=</span> distance_matrix[(j, i)]</span>
-<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
-<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>        <span class="co"># If both colors are selected, min_dist &lt;= dist</span></span>
-<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Equivalent to: NOT(x[i] AND x[j]) OR (min_dist &lt;= dist)</span></span>
-<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Which is: x[i]=0 OR x[j]=0 OR min_dist &lt;= dist</span></span>
-<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>        both_selected <span class="op">=</span> model.NewBoolVar(<span class="ss">f'both_</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>j<span class="sc">}</span><span class="ss">'</span>)</span>
-<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>        model.AddBoolAnd([x[i], x[j]]).OnlyEnforceIf(both_selected)</span>
-<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>        model.AddBoolOr([x[i].Not(), x[j].Not()]).OnlyEnforceIf(both_selected.Not())</span>
-<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>        <span class="co"># If both are selected, min_dist must be &lt;= the distance between them</span></span>
-<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>        model.Add(min_dist <span class="op">&lt;=</span> dist).OnlyEnforceIf(both_selected)</span>
-<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>model.Maximize(min_dist)</span>
-<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a><span class="co"># Solve</span></span>
-<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a>solver <span class="op">=</span> cp_model.CpSolver()</span>
-<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a>solver.parameters.max_time_in_seconds <span class="op">=</span> solve_time <span class="co"># May need more time for this formulation</span></span>
-<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a>status <span class="op">=</span> solver.Solve(model)</span>
-<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract results</span></span>
-<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> status <span class="op">==</span> cp_model.OPTIMAL <span class="kw">or</span> status <span class="op">==</span> cp_model.FEASIBLE:</span>
-<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a>    selected_colors <span class="op">=</span> [c <span class="cf">for</span> c <span class="kw">in</span> <span class="bu">range</span>(num_colors) <span class="cf">if</span> solver.Value(x[c]) <span class="op">==</span> <span class="dv">1</span>]</span>
-<span id="cb14-47"><a href="#cb14-47" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb14-48"><a href="#cb14-48" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calculate minimum and average distance</span></span>
-<span id="cb14-49"><a href="#cb14-49" aria-hidden="true" tabindex="-1"></a>    min_found <span class="op">=</span> <span class="bu">float</span>(<span class="st">'inf'</span>)</span>
-<span id="cb14-50"><a href="#cb14-50" aria-hidden="true" tabindex="-1"></a>    total_dist <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb14-51"><a href="#cb14-51" aria-hidden="true" tabindex="-1"></a>    count <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb14-52"><a href="#cb14-52" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> selected_colors:</span>
-<span id="cb14-53"><a href="#cb14-53" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> selected_colors:</span>
-<span id="cb14-54"><a href="#cb14-54" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> i <span class="op">&lt;</span> j:</span>
-<span id="cb14-55"><a href="#cb14-55" aria-hidden="true" tabindex="-1"></a>                dist <span class="op">=</span> distance_matrix.get((i, j)) <span class="kw">or</span> distance_matrix.get((j, i), <span class="dv">0</span>)</span>
-<span id="cb14-56"><a href="#cb14-56" aria-hidden="true" tabindex="-1"></a>                min_found <span class="op">=</span> <span class="bu">min</span>(min_found, dist)</span>
-<span id="cb14-57"><a href="#cb14-57" aria-hidden="true" tabindex="-1"></a>                total_dist <span class="op">+=</span> dist</span>
-<span id="cb14-58"><a href="#cb14-58" aria-hidden="true" tabindex="-1"></a>                count <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb14-59"><a href="#cb14-59" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb14-60"><a href="#cb14-60" aria-hidden="true" tabindex="-1"></a>    avg_dist <span class="op">=</span> total_dist <span class="op">/</span> count <span class="cf">if</span> count <span class="op">&gt;</span> <span class="dv">0</span> <span class="cf">else</span> <span class="dv">0</span></span>
-<span id="cb14-61"><a href="#cb14-61" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Selected colors: </span><span class="sc">{</span>selected_colors<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb14-62"><a href="#cb14-62" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Minimum distance: </span><span class="sc">{</span>min_found<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb14-63"><a href="#cb14-63" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Average distance: </span><span class="sc">{</span>avg_dist<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb14-64"><a href="#cb14-64" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Status: </span><span class="sc">{</span><span class="st">'OPTIMAL'</span> <span class="cf">if</span> status <span class="op">==</span> cp_model<span class="sc">.</span>OPTIMAL <span class="cf">else</span> <span class="st">'FEASIBLE'</span><span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb14-65"><a href="#cb14-65" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
-<span id="cb14-66"><a href="#cb14-66" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Solver failed with status: </span><span class="sc">{</span>solver<span class="sc">.</span>StatusName(status)<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> ortools.sat.python <span class="im">import</span> cp_model</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> cp_model.CpModel()</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co"># x[c] = 1 if color c is selected</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> {c: model.NewBoolVar(<span class="ss">f'select_color_</span><span class="sc">{</span>c<span class="sc">}</span><span class="ss">'</span>) <span class="cf">for</span> c <span class="kw">in</span> <span class="bu">range</span>(num_colors)}</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Constraint: Select exactly n colors</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>model.Add(<span class="bu">sum</span>(x[c] <span class="cf">for</span> c <span class="kw">in</span> <span class="bu">range</span>(num_colors)) <span class="op">==</span> num_colors_to_select)</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Find the maximum possible distance for upper bound</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>max_distance <span class="op">=</span> <span class="bu">max</span>(distance_matrix.values())</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="co"># min_dist is the minimum distance we want to maximize</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>min_dist <span class="op">=</span> model.NewIntVar(<span class="dv">0</span>, max_distance, <span class="st">'min_dist'</span>)</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="co"># For each pair of colors, if both are selected, their distance must be &gt;= min_dist</span></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(num_colors):</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(i <span class="op">+</span> <span class="dv">1</span>, num_colors):</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (i, j) <span class="kw">in</span> distance_matrix:</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>            dist <span class="op">=</span> distance_matrix[(i, j)]</span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> (j, i) <span class="kw">in</span> distance_matrix:</span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>            dist <span class="op">=</span> distance_matrix[(j, i)]</span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>        <span class="co"># If both colors are selected, min_dist &lt;= dist</span></span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Equivalent to: NOT(x[i] AND x[j]) OR (min_dist &lt;= dist)</span></span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Which is: x[i]=0 OR x[j]=0 OR min_dist &lt;= dist</span></span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>        both_selected <span class="op">=</span> model.NewBoolVar(<span class="ss">f'both_</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>j<span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>        model.AddBoolAnd([x[i], x[j]]).OnlyEnforceIf(both_selected)</span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>        model.AddBoolOr([x[i].Not(), x[j].Not()]).OnlyEnforceIf(both_selected.Not())</span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a>        <span class="co"># If both are selected, min_dist must be &lt;= the distance between them</span></span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a>        model.Add(min_dist <span class="op">&lt;=</span> dist).OnlyEnforceIf(both_selected)</span>
+<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a>model.Maximize(min_dist)</span>
+<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a><span class="co"># Solve</span></span>
+<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a>solver <span class="op">=</span> cp_model.CpSolver()</span>
+<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a>solver.parameters.max_time_in_seconds <span class="op">=</span> solve_time <span class="co"># May need more time for this formulation</span></span>
+<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a>status <span class="op">=</span> solver.Solve(model)</span>
+<span id="cb15-43"><a href="#cb15-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-44"><a href="#cb15-44" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract results</span></span>
+<span id="cb15-45"><a href="#cb15-45" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> status <span class="op">==</span> cp_model.OPTIMAL <span class="kw">or</span> status <span class="op">==</span> cp_model.FEASIBLE:</span>
+<span id="cb15-46"><a href="#cb15-46" aria-hidden="true" tabindex="-1"></a>    selected_colors <span class="op">=</span> [c <span class="cf">for</span> c <span class="kw">in</span> <span class="bu">range</span>(num_colors) <span class="cf">if</span> solver.Value(x[c]) <span class="op">==</span> <span class="dv">1</span>]</span>
+<span id="cb15-47"><a href="#cb15-47" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-48"><a href="#cb15-48" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calculate minimum and average distance</span></span>
+<span id="cb15-49"><a href="#cb15-49" aria-hidden="true" tabindex="-1"></a>    min_found <span class="op">=</span> <span class="bu">float</span>(<span class="st">'inf'</span>)</span>
+<span id="cb15-50"><a href="#cb15-50" aria-hidden="true" tabindex="-1"></a>    total_dist <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb15-51"><a href="#cb15-51" aria-hidden="true" tabindex="-1"></a>    count <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb15-52"><a href="#cb15-52" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> selected_colors:</span>
+<span id="cb15-53"><a href="#cb15-53" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> selected_colors:</span>
+<span id="cb15-54"><a href="#cb15-54" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> i <span class="op">&lt;</span> j:</span>
+<span id="cb15-55"><a href="#cb15-55" aria-hidden="true" tabindex="-1"></a>                dist <span class="op">=</span> distance_matrix.get((i, j)) <span class="kw">or</span> distance_matrix.get((j, i), <span class="dv">0</span>)</span>
+<span id="cb15-56"><a href="#cb15-56" aria-hidden="true" tabindex="-1"></a>                min_found <span class="op">=</span> <span class="bu">min</span>(min_found, dist)</span>
+<span id="cb15-57"><a href="#cb15-57" aria-hidden="true" tabindex="-1"></a>                total_dist <span class="op">+=</span> dist</span>
+<span id="cb15-58"><a href="#cb15-58" aria-hidden="true" tabindex="-1"></a>                count <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb15-59"><a href="#cb15-59" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-60"><a href="#cb15-60" aria-hidden="true" tabindex="-1"></a>    avg_dist <span class="op">=</span> total_dist <span class="op">/</span> count <span class="cf">if</span> count <span class="op">&gt;</span> <span class="dv">0</span> <span class="cf">else</span> <span class="dv">0</span></span>
+<span id="cb15-61"><a href="#cb15-61" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Selected colors: </span><span class="sc">{</span>selected_colors<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb15-62"><a href="#cb15-62" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Minimum distance: </span><span class="sc">{</span>min_found<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb15-63"><a href="#cb15-63" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Average distance: </span><span class="sc">{</span>avg_dist<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb15-64"><a href="#cb15-64" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Status: </span><span class="sc">{</span><span class="st">'OPTIMAL'</span> <span class="cf">if</span> status <span class="op">==</span> cp_model<span class="sc">.</span>OPTIMAL <span class="cf">else</span> <span class="st">'FEASIBLE'</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb15-65"><a href="#cb15-65" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb15-66"><a href="#cb15-66" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Solver failed with status: </span><span class="sc">{</span>solver<span class="sc">.</span>StatusName(status)<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <p>We now obtain a new palette:</p>
-<div id="c766a6f4" class="cell" data-execution_count="15">
+<div id="b310763b" class="cell" data-execution_count="15">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>selected_colors.sort(key<span class="op">=</span><span class="kw">lambda</span> c: adjust_hue_for_rainbow(color_df.iloc[c][<span class="st">'Hex'</span>]))</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>display_palette(selected_colors<span class="op">=</span>selected_colors, color_df<span class="op">=</span>color_df, filepath<span class="op">=</span><span class="st">"assets/max_minimum_palette.svg"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>selected_colors.sort(key<span class="op">=</span><span class="kw">lambda</span> c: adjust_hue_for_rainbow(color_df.iloc[c][<span class="st">'Hex'</span>]))</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>display_palette(selected_colors<span class="op">=</span>selected_colors, color_df<span class="op">=</span>color_df, filepath<span class="op">=</span><span class="st">"assets/max_minimum_palette.svg"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <div class="quarto-figure quarto-figure-center">
@@ -492,10 +518,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </figure>
 </div>
 <p>And can generate a new heatmap:</p>
-<div id="6a77a632" class="cell" data-execution_count="16">
+<div id="cf589414" class="cell" data-execution_count="16">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>plot_distance_heatmap(selected_colors, distance_matrix, color_df, filepath<span class="op">=</span><span class="st">"assets/max_minimum_heatmap.svg"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>plot_distance_heatmap(selected_colors, distance_matrix, color_df, filepath<span class="op">=</span><span class="st">"assets/max_minimum_heatmap.svg"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <div class="quarto-figure quarto-figure-center">
