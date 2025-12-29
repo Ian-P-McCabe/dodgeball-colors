@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import seaborn as sns
 import pandas as pd 
+from IPython.display import HTML
 
 def display_palette(selected_colors: list[int], color_df: pd.DataFrame, filepath: str, cols=None):
 
@@ -90,3 +91,19 @@ def plot_distance_heatmap(selected_colors: list[int], distance_matrix, color_df:
     plt.tight_layout()
 
     plt.savefig(filepath)
+
+
+def display_color_swatches(hex_colors, names=None, size="40px", label=None):
+    """Display color swatches in a row with optional label"""
+    html = "<div style='display: flex; align-items: center; gap: 10px;'>"
+    
+    if label:
+        html += f"<span style='min-width: 150px; font-size: 14px;'>{label}</span>"
+    
+    html += "<div style='display: flex; gap: 2px;'>"
+    for i, hex_color in enumerate(hex_colors):
+        title = names[i] if names else hex_color
+        html += f"<div title='{title}' style='width: {size}; height: {size}; background-color: #{hex_color}; border: 1px solid #ccc;'></div>"
+    html += "</div></div>"
+    
+    return HTML(html)
