@@ -10,7 +10,7 @@ format:
       - flatly
 execute: 
   cache: false
-  eval: false
+  eval: true
 jupyter: python3
 page-layout: full
 ---
@@ -160,9 +160,17 @@ In part 2 we covered why this isn't super easy to compute:
 - Analyzing the best combinations of 16 colors yeilds **2,245,547,413,628,550,570** possible combinations! (2 quintillion)
 - Analyzing the best combinations of 24 colors, we must score **178,409,928,551,259,450,861,900** possible combinations! (178 sextillion)
 
-I framed the problem as a a subset of the Maximum Diversity Problem - how can we select the subset of colors that are most distant from each other.
+I framed the problem as a a subset of the Maximum Diversity Problem - how can we select the subset of colors that are most distant from each other, ensuring the selected set of colors is most diverse 
+globally. 
 
-For 
+In Part 2 we used some heuristics to try an approximate the subset of colors with the
+highest average diversity, these included random searches, greedy algorithms, and
+generating a convex hull of the LAB color space. 
+
+While these are fun approximations (especially the convex hull visual), they pale
+in comparison to the power of proper optimization methods. 
+
+We will use Google's **Operations Research Tools Constraint Programming - SAT Solver** to systematically explore solutions to our color problem.
 
 ```{python}
 #| output: false
@@ -183,7 +191,7 @@ distance_matrix = build_distance_matrix()
 ```{python}
 num_colors = 103
 num_colors_to_select = 16
-solve_time = 5
+solve_time = 300
 ```
 
 ## Maximum Pairwise Distance
@@ -231,6 +239,7 @@ model.Maximize(sum(objective_terms))
 # Solve
 solver = cp_model.CpSolver()
 solver.parameters.max_time_in_seconds = solve_time  # Optional time limit
+solver.parameters.log_search_progress = True 
 status = solver.Solve(model)
 
 # Extract results
@@ -278,12 +287,12 @@ from utils import plot_distance_heatmap
 
 plot_distance_heatmap(selected_colors, distance_matrix, color_df, filepath="assets/max_pairwise_heatmap.svg")
 
-selected_colors = [3, 10, 12, 13, 18, 19, 20, 22, 35, 46, 47, 53, 70, 88, 100, 101]
+selected_colors = [12, 16, 17, 19, 37, 49, 50, 52, 53, 70, 72, 74, 88, 97, 98, 100]
 ```
 
 ![Heatmap Showing Pairwise Distances Between Colors](assets/max_pairwise_heatmap.svg)
 
-Generally we have done a good job, however adjacent colors are still pretty similar. For example Maroon and Heather Cardinal are almost unacceptably close. 
+Generally we have done a good job, however adjacent colors are still pretty similar. For example Maroon and Heather Cardinal are almost unacceptably close.  
 
 ## Maximize the Minimum Distance
 
@@ -331,6 +340,7 @@ model.Maximize(min_dist)
 # Solve
 solver = cp_model.CpSolver()
 solver.parameters.max_time_in_seconds = solve_time # May need more time for this formulation
+solver.parameters.log_search_progress = True
 status = solver.Solve(model)
 
 # Extract results
