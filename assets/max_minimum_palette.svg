@@ -6,7 +6,7 @@
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2025-12-29T17:08:02.307978</dc:date>
+    <dc:date>2025-12-29T17:29:13.194990</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -35,7 +35,7 @@ L 100.136957 88.321739
 L 100.136957 10.8 
 L 22.615217 10.8 
 z
-" clip-path="url(#pd4f1c327af)" style="fill: #603147"/>
+" clip-path="url(#p2dbdce6451)" style="fill: #603147"/>
    </g>
    <g id="text_1">
     <!-- Heather Maroon -->
@@ -259,7 +259,7 @@ L 202.000815 88.321739
 L 202.000815 10.8 
 L 124.479076 10.8 
 z
-" clip-path="url(#p564c04a3f9)" style="fill: #de5795"/>
+" clip-path="url(#p139679b400)" style="fill: #de5795"/>
    </g>
    <g id="text_2">
     <!-- Charity Pink -->
@@ -374,7 +374,7 @@ L 303.864674 88.321739
 L 303.864674 10.8 
 L 226.342935 10.8 
 z
-" clip-path="url(#p201d081658)" style="fill: #ba0c2f"/>
+" clip-path="url(#pe543f2ec18)" style="fill: #ba0c2f"/>
    </g>
    <g id="text_3">
     <!-- Red -->
@@ -448,7 +448,7 @@ L 405.728533 88.321739
 L 405.728533 10.8 
 L 328.206793 10.8 
 z
-" clip-path="url(#pe676d036b6)" style="fill: #ffffff"/>
+" clip-path="url(#p46e46e715a)" style="fill: #ffffff"/>
    </g>
    <g id="text_4">
     <!-- White -->
@@ -486,7 +486,7 @@ L 100.136957 193.621739
 L 100.136957 116.1 
 L 22.615217 116.1 
 z
-" clip-path="url(#p4dda4d9a4b)" style="fill: #e88467"/>
+" clip-path="url(#p8b834fa78a)" style="fill: #e88467"/>
    </g>
    <g id="text_5">
     <!-- Heather Sunset -->
@@ -602,7 +602,7 @@ L 202.000815 193.621739
 L 202.000815 116.1 
 L 124.479076 116.1 
 z
-" clip-path="url(#p1d0bf18326)" style="fill: #ffa400"/>
+" clip-path="url(#p399ec72e89)" style="fill: #ffa400"/>
    </g>
    <g id="text_6">
     <!-- Gold -->
@@ -655,7 +655,7 @@ L 303.864674 193.621739
 L 303.864674 116.1 
 L 226.342935 116.1 
 z
-" clip-path="url(#p1c4e29960f)" style="fill: #f6eb69"/>
+" clip-path="url(#p5aa2714122)" style="fill: #f6eb69"/>
    </g>
    <g id="text_7">
     <!-- Yellow -->
@@ -706,7 +706,7 @@ L 405.728533 193.621739
 L 405.728533 116.1 
 L 328.206793 116.1 
 z
-" clip-path="url(#p1e367e8059)" style="fill: #79863c"/>
+" clip-path="url(#p7223cd050f)" style="fill: #79863c"/>
    </g>
    <g id="text_8">
     <!-- Heather Green -->
@@ -734,7 +734,7 @@ L 100.136957 298.921739
 L 100.136957 221.4 
 L 22.615217 221.4 
 z
-" clip-path="url(#p973178ae57)" style="fill: #a0dab3"/>
+" clip-path="url(#pda8204e129)" style="fill: #a0dab3"/>
    </g>
    <g id="text_9">
     <!-- Heather Prism Mint -->
@@ -801,7 +801,7 @@ L 202.000815 298.921739
 L 202.000815 221.4 
 L 124.479076 221.4 
 z
-" clip-path="url(#p4eae255130)" style="fill: #212322"/>
+" clip-path="url(#pf4e265806b)" style="fill: #212322"/>
    </g>
    <g id="text_10">
     <!-- Vintage Black -->
@@ -928,7 +928,7 @@ L 303.864674 298.921739
 L 303.864674 221.4 
 L 226.342935 221.4 
 z
-" clip-path="url(#pbf155972e9)" style="fill: #00965e"/>
+" clip-path="url(#pbb34659dd3)" style="fill: #00965e"/>
    </g>
    <g id="text_11">
     <!-- Heather Kelly -->
@@ -972,7 +972,7 @@ L 405.728533 298.921739
 L 405.728533 221.4 
 L 328.206793 221.4 
 z
-" clip-path="url(#p94a230b778)" style="fill: #115740"/>
+" clip-path="url(#pbf03016bed)" style="fill: #115740"/>
    </g>
    <g id="text_12">
     <!-- Evergreen -->
@@ -1023,7 +1023,7 @@ L 100.136957 404.221739
 L 100.136957 326.7 
 L 22.615217 326.7 
 z
-" clip-path="url(#pb768581db7)" style="fill: #00afd7"/>
+" clip-path="url(#pbeb7764693)" style="fill: #00afd7"/>
    </g>
    <g id="text_13">
     <!-- Turquoise -->
@@ -1086,7 +1086,7 @@ L 202.000815 404.221739
 L 202.000815 326.7 
 L 124.479076 326.7 
 z
-" clip-path="url(#pb575b18a82)" style="fill: #76797a"/>
+" clip-path="url(#p8458e55432)" style="fill: #76797a"/>
    </g>
    <g id="text_14">
     <!-- Heather Storm -->
@@ -1114,7 +1114,7 @@ L 303.864674 404.221739
 L 303.864674 326.7 
 L 226.342935 326.7 
 z
-" clip-path="url(#p24f2e85e34)" style="fill: #005876"/>
+" clip-path="url(#p85ddb49f3b)" style="fill: #005876"/>
    </g>
    <g id="text_15">
     <!-- Deep Teal -->
@@ -1189,7 +1189,7 @@ L 405.728533 404.221739
 L 405.728533 326.7 
 L 328.206793 326.7 
 z
-" clip-path="url(#p7a5f13b7f1)" style="fill: #7d55c7"/>
+" clip-path="url(#p12d72f744a)" style="fill: #7d55c7"/>
    </g>
    <g id="text_16">
     <!-- Heather Team Purple -->
@@ -1218,52 +1218,52 @@ z
   </g>
  </g>
  <defs>
-  <clipPath id="pd4f1c327af">
+  <clipPath id="p2dbdce6451">
    <rect x="22.615217" y="10.8" width="77.521739" height="93.026087"/>
   </clipPath>
-  <clipPath id="p564c04a3f9">
+  <clipPath id="p139679b400">
    <rect x="124.479076" y="10.8" width="77.521739" height="93.026087"/>
   </clipPath>
-  <clipPath id="p201d081658">
+  <clipPath id="pe543f2ec18">
    <rect x="226.342935" y="10.8" width="77.521739" height="93.026087"/>
   </clipPath>
-  <clipPath id="pe676d036b6">
+  <clipPath id="p46e46e715a">
    <rect x="328.206793" y="10.8" width="77.521739" height="93.026087"/>
   </clipPath>
-  <clipPath id="p4dda4d9a4b">
+  <clipPath id="p8b834fa78a">
    <rect x="22.615217" y="116.1" width="77.521739" height="93.026087"/>
   </clipPath>
-  <clipPath id="p1d0bf18326">
+  <clipPath id="p399ec72e89">
    <rect x="124.479076" y="116.1" width="77.521739" height="93.026087"/>
   </clipPath>
-  <clipPath id="p1c4e29960f">
+  <clipPath id="p5aa2714122">
    <rect x="226.342935" y="116.1" width="77.521739" height="93.026087"/>
   </clipPath>
-  <clipPath id="p1e367e8059">
+  <clipPath id="p7223cd050f">
    <rect x="328.206793" y="116.1" width="77.521739" height="93.026087"/>
   </clipPath>
-  <clipPath id="p973178ae57">
+  <clipPath id="pda8204e129">
    <rect x="22.615217" y="221.4" width="77.521739" height="93.026087"/>
   </clipPath>
-  <clipPath id="p4eae255130">
+  <clipPath id="pf4e265806b">
    <rect x="124.479076" y="221.4" width="77.521739" height="93.026087"/>
   </clipPath>
-  <clipPath id="pbf155972e9">
+  <clipPath id="pbb34659dd3">
    <rect x="226.342935" y="221.4" width="77.521739" height="93.026087"/>
   </clipPath>
-  <clipPath id="p94a230b778">
+  <clipPath id="pbf03016bed">
    <rect x="328.206793" y="221.4" width="77.521739" height="93.026087"/>
   </clipPath>
-  <clipPath id="pb768581db7">
+  <clipPath id="pbeb7764693">
    <rect x="22.615217" y="326.7" width="77.521739" height="93.026087"/>
   </clipPath>
-  <clipPath id="pb575b18a82">
+  <clipPath id="p8458e55432">
    <rect x="124.479076" y="326.7" width="77.521739" height="93.026087"/>
   </clipPath>
-  <clipPath id="p24f2e85e34">
+  <clipPath id="p85ddb49f3b">
    <rect x="226.342935" y="326.7" width="77.521739" height="93.026087"/>
   </clipPath>
-  <clipPath id="p7a5f13b7f1">
+  <clipPath id="p12d72f744a">
    <rect x="328.206793" y="326.7" width="77.521739" height="93.026087"/>
   </clipPath>
  </defs>

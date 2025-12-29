@@ -13,6 +13,8 @@ execute:
   eval: true
 jupyter: python3
 page-layout: full
+editor: 
+    render-on-save: true
 ---
 
 # Overview
@@ -160,17 +162,15 @@ In part 2 we covered why this isn't super easy to compute:
 - Analyzing the best combinations of 16 colors yeilds **2,245,547,413,628,550,570** possible combinations! (2 quintillion)
 - Analyzing the best combinations of 24 colors, we must score **178,409,928,551,259,450,861,900** possible combinations! (178 sextillion)
 
-I framed the problem as a a subset of the Maximum Diversity Problem - how can we select the subset of colors that are most distant from each other, ensuring the selected set of colors is most diverse 
-globally. 
+I framed the problem as a a subset of the Maximum Diversity Problem - how can we select the subset of colors that are most distant from each other on average?
 
-In Part 2 we used some heuristics to try an approximate the subset of colors with the
-highest average diversity, these included random searches, greedy algorithms, and
-generating a convex hull of the LAB color space. 
+In Part 2 we used some heuristics to try an approximate the subset of colors with the highest average distance, these included random searches, greedy algorithms, and generating a convex hull of the LAB color space. 
 
-While these are fun approximations (especially the convex hull visual), they pale
-in comparison to the power of proper optimization methods. 
+While these are fun approximations (especially the convex hull visual), they pale in comparison to the power of proper optimization methods. 
 
-We will use Google's **Operations Research Tools Constraint Programming - SAT Solver** to systematically explore solutions to our color problem.
+We will use Google's **Operations Research Tools Constraint Programming - SAT Solver** to systematically explore solutions to our color diversity problem. 
+
+The CP-SAT solver is flexible enough to enable us to explore the original **maximum pairwise distance** approach as well as other measures such as **maximum minimum distance**.
 
 ```{python}
 #| output: false
@@ -196,12 +196,16 @@ solve_time = 300
 
 ## Maximum Pairwise Distance
 
-We are going to start by solving the main question from part 2: 
+Continuing where we left off in part 2, lets find the subset of colors with the greatest pairwise distance. This is the same metrix used in the random, greedy, and convex hull approaches. 
 
-**What is the best set of n colors for the league?**
+The code is collapsed below, but work as follows
 
-We will start by selecting the best **16** colors. 
-
+1. Initialize an empty model of the problem
+2. Generate 103 variables representing if a color is selected or not
+3. State that the sum of selected colors must be 16
+4. Create an array that is the sum of all selected color pairs 
+5. Solve the model (where the magic happens) 
+6. Log results test test
 
 ```{python}
 #| code-fold: true
@@ -279,7 +283,9 @@ display_palette(selected_colors=selected_colors, color_df=color_df, filepath="as
 
 ![Color Palette](assets/max_pairwise_palette.svg)
 
-We can also create a heatmap showing how close the colors are.
+This is a great start! Broadly this palette contains a variety of colors that are quite different. However Charity Pink and Berry are a bit close, so are Maroon and Heather Cardinal as well as Gold and Maize Yellow.
+
+Lets sort make a heatmap showing how close the colors are and take a closer look:
 
 ```{python}
 #| output: false
@@ -292,9 +298,15 @@ selected_colors = [12, 16, 17, 19, 37, 49, 50, 52, 53, 70, 72, 74, 88, 97, 98, 1
 
 ![Heatmap Showing Pairwise Distances Between Colors](assets/max_pairwise_heatmap.svg)
 
-Generally we have done a good job, however adjacent colors are still pretty similar. For example Maroon and Heather Cardinal are almost unacceptably close.  
+Interesting. Broadly (see the green in the upper right/lower left), the colors are quite distinct. However along x = -1 (ignoring 0.0 when comparing the same color) some of our colors are almost unacceptably close. 
+
+Maroon and Heather Cardinal are only 6 ∆E units apart, and there are quite a few pairs that are ~10 ∆E units away from each other. 
+
+To solve this issue, instead of maximizing total diversity, what if we tried to maximize the minimum distance between any two points?
 
 ## Maximize the Minimum Distance
+
+We can run a similar optimization to the code above, however we tweak the objective values so we maximize the minimum distance between any two points. 
 
 ```{python}
 #| eval: false
