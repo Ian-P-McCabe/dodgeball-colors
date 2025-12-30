@@ -9,8 +9,8 @@ format:
     theme: 
       - flatly
 execute: 
-  cache: false
-  eval: true
+  cache: true
+  eval: false
 jupyter: python3
 page-layout: full
 editor: 
@@ -64,13 +64,13 @@ lab_colors = [color_objects.LabColor(lab_l=lab_color[0], lab_a=lab_color[1], lab
 
 ## Obtaining LAB Values
 
-![How I got LAB Color Info](./assets/ColorInfoProcess.png)
-
 In order to accurately determine color difference, we will need to obtain the LAB values for each possible shirt color. 
 The LAB color system is best for this analysis because it accurately represents how humans see and differentiate color. 
 
+![How I got LAB Color Info](./assets/ColorInfoProcess.png)
+
 LAB color information for most colors can be obtained from the PMS (Pantone Matching System) code beneath the swatch on the color palette. 
-Pantone provides LAB (and other color) information for each color with a PMS code.
+Pantone provides LAB (and other color) information for each color with a PMS code. (For colors without a PMS code, I approximated a LAB value from the display RGB value)
 
 ## Color Difference
 
@@ -91,9 +91,10 @@ For color difference calculations, will use the [CIEDE2000 distance](https://en.
 
 For **shirt color selection**, we will use:
 
-- **ΔE > 10**: Safe choice, easily distinguishable in all conditions
-- **ΔE 5–10**: Acceptable if team choices are prioritized over maximum distinctness
 - **ΔE < 5**: Risk of confusion, too similar
+- **ΔE 5–10**: Acceptable if team choices are prioritized over maximum distinctness
+- **ΔE > 10**: Safe choice, easily distinguishable in all conditions
+- **∆E > 20**: Ideal choice, very distinct colors 
 
 ### Examples
 
@@ -191,12 +192,11 @@ distance_matrix = build_distance_matrix()
 ```{python}
 num_colors = 103
 num_colors_to_select = 16
-solve_time = 300
 ```
 
 ## Maximum Pairwise Distance
 
-Continuing where we left off in part 2, lets find the subset of colors with the greatest pairwise distance. This is the same metrix used in the random, greedy, and convex hull approaches. 
+Continuing where we left off in part 2, lets find the subset of colors with the greatest pairwise distance. This is the same metric used in the random, greedy, and convex hull approaches. 
 
 The code is collapsed below, but work as follows
 
@@ -209,6 +209,7 @@ The code is collapsed below, but work as follows
 
 ```{python}
 #| code-fold: true
+#| output: true
 #| eval: false 
 from ortools.sat.python import cp_model
 
@@ -242,38 +243,41 @@ model.Maximize(sum(objective_terms))
 
 # Solve
 solver = cp_model.CpSolver()
-solver.parameters.max_time_in_seconds = solve_time  # Optional time limit
-solver.parameters.log_search_progress = True 
+solver.parameters.max_time_in_seconds = 30  # Optional time limit
+solver.parameters.log_search_progress = False 
 status = solver.Solve(model)
 
 # Extract results
 if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
     selected_colors = [c for c in range(num_colors) if solver.Value(x[c]) == 1]
     
-    # Calculate average distance
+    # Calculate minimum and average distance
+    min_found = float('inf')
     total_dist = 0
     count = 0
     for i in selected_colors:
         for j in selected_colors:
             if i < j:
                 dist = distance_matrix.get((i, j)) or distance_matrix.get((j, i), 0)
+                min_found = min(min_found, dist)
                 total_dist += dist
                 count += 1
     
     avg_dist = total_dist / count if count > 0 else 0
     print(f"Selected colors: {selected_colors}")
+    print(f"Minimum distance: {min_found}")
     print(f"Average distance: {avg_dist}")
     print(f"Status: {'OPTIMAL' if status == cp_model.OPTIMAL else 'FEASIBLE'}")
 else:
     print(f"Solver failed with status: {solver.StatusName(status)}")
 ```
 
-We obtain the following palette:
+After 5 minutes of solving, we obtain the following palette:
 
 ```{python}
 #| output: false 
 
-selected_colors = [6, 12, 16, 18, 19, 24, 25, 35, 36, 46, 47, 49, 53, 62, 72, 88]
+#selected_colors = [6, 12, 16, 18, 19, 24, 25, 35, 36, 46, 47, 49, 53, 62, 72, 88]
 from utils import display_palette, adjust_hue_for_rainbow
 
 selected_colors.sort(key=lambda c: adjust_hue_for_rainbow(color_df.iloc[c]['Hex']))
@@ -285,7 +289,7 @@ display_palette(selected_colors=selected_colors, color_df=color_df, filepath="as
 
 This is a great start! Broadly this palette contains a variety of colors that are quite different. However Charity Pink and Berry are a bit close, so are Maroon and Heather Cardinal as well as Gold and Maize Yellow.
 
-Lets sort make a heatmap showing how close the colors are and take a closer look:
+Lets sort make a heatmap showing how similar/different the colors are and take a closer look:
 
 ```{python}
 #| output: false
@@ -293,7 +297,7 @@ from utils import plot_distance_heatmap
 
 plot_distance_heatmap(selected_colors, distance_matrix, color_df, filepath="assets/max_pairwise_heatmap.svg")
 
-selected_colors = [12, 16, 17, 19, 37, 49, 50, 52, 53, 70, 72, 74, 88, 97, 98, 100]
+#selected_colors = [12, 16, 17, 19, 37, 49, 50, 52, 53, 70, 72, 74, 88, 97, 98, 100]
 ```
 
 ![Heatmap Showing Pairwise Distances Between Colors](assets/max_pairwise_heatmap.svg)
@@ -302,7 +306,7 @@ Interesting. Broadly (see the green in the upper right/lower left), the colors a
 
 Maroon and Heather Cardinal are only 6 ∆E units apart, and there are quite a few pairs that are ~10 ∆E units away from each other. 
 
-To solve this issue, instead of maximizing total diversity, what if we tried to maximize the minimum distance between any two points?
+To solve this issue, instead of maximizing total diversity, what if we tried to maximize the minimum distance between any two colors?
 
 ## Maximize the Minimum Distance
 
@@ -310,6 +314,7 @@ We can run a similar optimization to the code above, however we tweak the object
 
 ```{python}
 #| eval: false
+#| output: true
 
 from ortools.sat.python import cp_model
 
@@ -351,8 +356,8 @@ model.Maximize(min_dist)
 
 # Solve
 solver = cp_model.CpSolver()
-solver.parameters.max_time_in_seconds = solve_time # May need more time for this formulation
-solver.parameters.log_search_progress = True
+solver.parameters.max_time_in_seconds = 240 # May need more time for this formulation
+solver.parameters.log_search_progress = False
 status = solver.Solve(model)
 
 # Extract results
@@ -402,16 +407,155 @@ plot_distance_heatmap(selected_colors, distance_matrix, color_df, filepath="asse
 
 ![Max Min Heatmap](assets/max_minimum_heatmap.svg)
 
+Much better! Now the closest colors are 22 ∆E units apart, this is a dramatic increase from ∆6 units from before. This palette also includes white, gray, and black, which we were missing before.
+
 Lets take a moment and compare the results of our different objective functions:
 
 :::{.grid}
 
 ::: {.g-col-6}
+
+### Maxmimize Total Distance
 ![Maximize Total Distance Heatmap](assets/max_pairwise_heatmap.svg)
+
+- Colors are broadly more distant (plot is greener)
+- Adjacent colors are very close togther
+- Solution is FEASIBLE
 :::
 
 ::: {.g-col-6}
+
+### Maximize Minimum Distance
 ![Maximize Minimum Distance Heatmap](assets/max_minimum_heatmap.svg)
+
+- Colors are broadly a little more similar (plot is green/yellow)
+- Adjacent colors are much further apart
+- Solution is **OPTIMAL**
+  
 :::
 
 :::
+
+### Hybrid Approach
+
+Since the solution from the Maximum Minimum approach resulted in a max-min of 22 ∆E units, we can rerun the total distance solver with an additional constraint that all pairs must be a minimum acceptable distance apart. In this case the threshold will be 22 ∆E units. 
+
+After running the solver we get the following result:
+
+```{python}
+#| code-fold: true
+#| output: true
+#| eval: false 
+
+from ortools.sat.python import cp_model
+
+minimum_acceptable_distance = 22.0
+
+model = cp_model.CpModel()
+
+# x[c] = 1 if color c is selected
+x = {c: model.NewBoolVar(f'select_color_{c}') for c in range(num_colors)}
+
+# Constraint: Select exactly n colors
+model.Add(sum(x[c] for c in range(num_colors)) == num_colors_to_select)
+
+# Objective: Maximize total pairwise distance
+objective_terms = []
+for i in range(num_colors):
+    for j in range(i + 1, num_colors):
+        if (i, j) in distance_matrix:
+            dist = distance_matrix[(i, j)]
+        elif (j, i) in distance_matrix:
+            dist = distance_matrix[(j, i)]
+        else:
+            continue
+        
+        # pair_var = 1 if both x[i] and x[j] are selected
+        pair_var = model.NewBoolVar(f'pair_{i}_{j}')
+        model.AddBoolAnd([x[i], x[j]]).OnlyEnforceIf(pair_var)
+        model.AddBoolOr([x[i].Not(), x[j].Not()]).OnlyEnforceIf(pair_var.Not())
+
+        # Threshold constraint: if both selected, distance must be >= minimum
+        if dist < minimum_acceptable_distance:
+            model.AddBoolOr([x[i].Not(), x[j].Not()])  # Can't select both
+        
+        objective_terms.append(dist * pair_var)
+
+model.Maximize(sum(objective_terms))
+
+# Solve
+solver = cp_model.CpSolver()
+solver.parameters.max_time_in_seconds = 15  # Optional time limit TODO: CHANGE
+solver.parameters.log_search_progress = False 
+status = solver.Solve(model)
+
+# Extract results
+if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
+    selected_colors = [c for c in range(num_colors) if solver.Value(x[c]) == 1]
+    
+    # Calculate minimum and average distance
+    min_found = float('inf')
+    total_dist = 0
+    count = 0
+    for i in selected_colors:
+        for j in selected_colors:
+            if i < j:
+                dist = distance_matrix.get((i, j)) or distance_matrix.get((j, i), 0)
+                min_found = min(min_found, dist)
+                total_dist += dist
+                count += 1
+    
+    avg_dist = total_dist / count if count > 0 else 0
+    print(f"Selected colors: {selected_colors}")
+    print(f"Minimum distance: {min_found}")
+    print(f"Average distance: {avg_dist}")
+    print(f"Status: {'OPTIMAL' if status == cp_model.OPTIMAL else 'FEASIBLE'}")
+else:
+    print(f"Solver failed with status: {solver.StatusName(status)}")
+```
+
+And we obtain the following new palette
+
+```{python}
+#|output: false 
+
+selected_colors.sort(key=lambda c: adjust_hue_for_rainbow(color_df.iloc[c]['Hex']))
+
+display_palette(selected_colors=selected_colors, color_df=color_df, filepath="assets/hybrid_palette.svg")
+```
+
+![Hybrid Algorithm Palette](assets/hybrid_palette.svg)
+
+```{python}
+#|output: false 
+
+plot_distance_heatmap(selected_colors, distance_matrix, color_df, filepath="assets/hybrid_heatmap.svg")
+```
+
+![Hybrid Algorithm Heatmap](assets/hybrid_heatmap.svg)
+
+:::{.grid}
+
+::: {.g-col-4}
+
+### Maxmimize Total Distance
+![Alt text](assets/max_pairwise_palette.svg)
+:::
+
+::: {.g-col-4}
+
+### Hybrid
+![Alt text](assets/hybrid_palette.svg)
+
+:::
+
+::: {.g-col-4}
+
+### Maxmimize Minimum
+![Alt text](assets/max_minimum_palette.svg)
+
+:::
+
+:::
+
+test

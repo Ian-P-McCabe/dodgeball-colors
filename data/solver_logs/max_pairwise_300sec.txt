@@ -338,3 +338,5 @@ usertime: 300.041
 deterministic_time: 6775.56
 gap_integral: 66627.2
 solution_fingerprint: 0xa104c3708e0fcf0d
+
+selected_colors = [6, 12, 16, 18, 19, 24, 25, 35, 36, 46, 47, 49, 53, 62, 72, 88]
