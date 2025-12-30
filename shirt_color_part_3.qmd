@@ -255,6 +255,7 @@ We can run a similar optimization to the code above, however we tweak the object
 ```{python}
 #| eval: true
 #| output: true
+import random
 
 max_minimum_model = ColorModel(num_colors, num_colors_to_select, distance_matrix)
 
@@ -262,7 +263,10 @@ max_minimum_model.build_max_minimum_model()
 
 max_minimum_colors = [8, 12, 13, 16, 17, 19, 23, 31, 37, 47, 53, 70, 72, 86, 97, 100]
 
-#max_minimum_colors = max_minimum_model.solve(time_limit=230, log_progress=False)
+optimal_paletts = max_minimum_model.solve_enumerate_optimal(max_solutions = 100000, known_optimal=22)
+
+max_minimum_colors = random.choice(optimal_paletts)
+# max_minimum_colors = max_minimum_model.solve(time_limit=230, log_progress=False)
 
 ```
 
@@ -308,6 +312,7 @@ Lets take a moment and compare the results of our different objective functions:
 - Colors are broadly a little more similar (plot is green/yellow)
 - Adjacent colors are much further apart
 - Solution is **OPTIMAL**
+- 28,654 optimal solutions (for 16 colors)
   
 :::
 
