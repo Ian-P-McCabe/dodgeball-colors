@@ -1,53 +1,34 @@
 from ortools.sat.python import cp_model
 
-# def build_max_pairwise_model(num_colors: int, num_colors_to_select: int, distance_matrix) -> cp_model.CpModel:
-
-#     model = cp_model.CpModel()
-
-#     # x[c] = 1 if color c is selected
-#     x = {c: model.NewBoolVar(f'select_color_{c}') for c in range(num_colors)}
-
-#     # Constraint: Select exactly n colors
-#     model.Add(sum(x[c] for c in range(num_colors)) == num_colors_to_select)
-
-#     # Objective: Maximize total pairwise distance
-#     objective_terms = []
-#     for i in range(num_colors):
-#         for j in range(i + 1, num_colors):
-#             if (i, j) in distance_matrix:
-#                 dist = distance_matrix[(i, j)]
-#             elif (j, i) in distance_matrix:
-#                 dist = distance_matrix[(j, i)]
-#             else:
-#                 continue
-            
-#             # pair_var = 1 if both x[i] and x[j] are selected
-#             pair_var = model.NewBoolVar(f'pair_{i}_{j}')
-#             model.AddBoolAnd([x[i], x[j]]).OnlyEnforceIf(pair_var)
-#             model.AddBoolOr([x[i].Not(), x[j].Not()]).OnlyEnforceIf(pair_var.Not())
-            
-#             objective_terms.append(dist * pair_var)
-
-#     model.Maximize(sum(objective_terms))
-
-#     return model
-
-
-class ColorSolver():
+class ColorModel():
 
     def __init__(self, num_colors: int, num_colors_to_select: int, distance_matrix):
         self.num_colors = num_colors
         self.num_colors_to_select = num_colors_to_select
         self.distance_matrix = distance_matrix
-        self.color_selection_vars = {}
-        self.model = cp_model.CpModel()
+        self._reset_model()
     
-    def build_max_pairwise_model(self):
-        # x[c] = 1 if color c is selected
-        color_selection_vars = {c: self.model.NewBoolVar(f'select_color_{c}') for c in range(self.num_colors)}
 
+    def _reset_model(self):
+        """Reset model state for fresh build."""
+        self.model = cp_model.CpModel()
+        self.color_vars = {}
+
+
+    def _create_color_variables(self):
+        """Create binary variables for each color."""
+        self.color_vars = {
+            c: self.model.NewBoolVar(f'color_{c}') 
+            for c in range(self.num_colors)
+        }
         # Constraint: Select exactly n colors
-        self.model.Add(sum(color_selection_vars[c] for c in range(self.num_colors)) == self.num_colors_to_select)
+        self.model.Add(sum(self.color_vars.values()) == self.num_colors_to_select)
+    
+
+    def build_max_pairwise_model(self):
+        
+        self._reset_model()
+        self._create_color_variables()
 
         # Objective: Maximize total pairwise distance
         objective_terms = []
@@ -62,20 +43,57 @@ class ColorSolver():
                 
                 # pair_var = 1 if both x[i] and x[j] are selected
                 pair_var = self.model.NewBoolVar(f'pair_{i}_{j}')
-                self.model.AddBoolAnd([color_selection_vars[i], color_selection_vars[j]]).OnlyEnforceIf(pair_var)
-                self.model.AddBoolOr([color_selection_vars[i].Not(), color_selection_vars[j].Not()]).OnlyEnforceIf(pair_var.Not())
+                self.model.AddBoolAnd([self.color_vars[i], self.color_vars[j]]).OnlyEnforceIf(pair_var)
+                self.model.AddBoolOr([self.color_vars[i].Not(), self.color_vars[j].Not()]).OnlyEnforceIf(pair_var.Not())
                 
                 objective_terms.append(dist * pair_var)
 
         self.model.Maximize(sum(objective_terms))
     
-    
-    def analyze_solution(self, solver: cp_model.CpSolver):
 
-        status = solver.status_name
+    def build_max_minimum_model(self):
+
+        self._reset_model()
+        self._create_color_variables()
+
+        max_distance = max(self.distance_matrix.values())
+        min_dist = self.model.NewIntVar(0, max_distance, 'min_dist')
+
+        # For each pair of colors, if both are selected, their distance must be >= min_dist
+        for i in range(self.num_colors):
+            for j in range(i + 1, self.num_colors):
+                if (i, j) in self.distance_matrix:
+                    dist = self.distance_matrix[(i, j)]
+                elif (j, i) in self.distance_matrix:
+                    dist = self.distance_matrix[(j, i)]
+                else:
+                    continue
+                
+                # If both colors are selected, min_dist <= dist
+                both_selected = self.model.NewBoolVar(f'both_{i}_{j}')
+
+                self.model.AddMultiplicationEquality(both_selected, [self.color_vars[i], self.color_vars[j]])
+
+                # If both are selected, min_dist must be <= the distance between them
+                self.model.Add(min_dist <= dist).OnlyEnforceIf(both_selected)
+
+        self.model.Maximize(min_dist)
+    
+    def solve(self, time_limit: float = 300, log_progress: bool = False):
+        """Solve the model and return results."""
+
+        solver = cp_model.CpSolver()
+        solver.parameters.max_time_in_seconds = time_limit
+        solver.parameters.log_search_progress = log_progress
+
+        status = solver.Solve(self.model)
+        return self.extract_solution(status, solver)
+
+
+    def extract_solution(self, status, solver):
 
         if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
-            selected_colors = [c for c in range(self.num_colors) if solver.Value(self.color_selection_vars[c]) == 1]
+            selected_colors = [c for c in range(self.num_colors) if solver.Value(self.color_vars[c]) == 1]
             
             # Calculate minimum and average distance
             min_found = float('inf')
@@ -94,8 +112,11 @@ class ColorSolver():
             print(f"Minimum distance: {min_found}")
             print(f"Average distance: {avg_dist}")
             print(f"Status: {'OPTIMAL' if status == cp_model.OPTIMAL else 'FEASIBLE'}")
+
+            return selected_colors
         else:
             print(f"Solver failed with status: {solver.StatusName(status)}")
+            return []
 
 
 # Solve
@@ -106,7 +127,7 @@ class ColorSolver():
 
 # Extract results
 # if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
-#     selected_colors = [c for c in range(num_colors) if solver.Value(color_selection_vars[c]) == 1]
+#     selected_colors = [c for c in range(num_colors) if solver.Value(color_vars[c]) == 1]
     
 #     # Calculate minimum and average distance
 #     min_found = float('inf')
