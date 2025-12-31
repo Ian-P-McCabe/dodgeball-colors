@@ -3,6 +3,7 @@ title: Shirt Color Selection Problem Part 3
 subtitle: Proper Optimization
 author: Ian McCabe
 date: January 2026
+image: "https://quarto.org/docs/websites/images/tools.png"
 format:
   html:
     code-fold: true
