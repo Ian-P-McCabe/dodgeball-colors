@@ -94,8 +94,39 @@ class ColorModel():
                 self.model.Add(self.min_dist_var <= dist).OnlyEnforceIf(both_selected)
 
         self.model.Maximize(self.min_dist_var)
+    
 
-    def solve_enumerate_optimal(self, time_limit: int = 300, max_solutions: int = 10, known_optimal: int = None):
+    def build_hybrid_model(self, optimal_max_min: int):
+
+        self._reset_model()
+        self._create_color_variables()
+
+        objective_terms = []
+        for i in range(self.num_colors):
+            for j in range(i + 1, self.num_colors):
+                if (i, j) in self.distance_matrix:
+                    dist = self.distance_matrix[(i, j)]
+                elif (j, i) in self.distance_matrix:
+                    dist = self.distance_matrix[(j, i)]
+                else:
+                    continue
+                
+                # pair_var = 1 if both x[i] and x[j] are selected
+                both_selected = self.model.NewBoolVar(f'pair_{i}_{j}')
+                self.model.AddMultiplicationEquality(both_selected, [self.color_vars[i], self.color_vars[j]])
+
+                # Hard constraint: if both selected, distance must be >= optimal_max_min
+                if dist < optimal_max_min:
+                    # Cannot select both colors if their distance is below threshold
+                    self.model.Add(both_selected == 0)
+                
+                objective_terms.append(dist * both_selected)
+
+        self.model.Maximize(sum(objective_terms))
+
+
+
+    def max_min_solve_enumerate_optimal(self, time_limit: int = 300, max_solutions: int = 10, known_optimal: int = None):
         # First solve to find optimal
         if known_optimal is not None:
             optimal_value = known_optimal
@@ -166,10 +197,10 @@ class ColorModel():
             print(f"Average distance: {avg_dist}")
             print(f"Status: {'OPTIMAL' if status == cp_model.OPTIMAL else 'FEASIBLE'}")
 
-            return selected_colors
+            return selected_colors, min_found
         else:
             print(f"Solver failed with status: {solver.StatusName(status)}")
-            return []
+            return [], -1
 
 
 
