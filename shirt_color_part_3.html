@@ -122,7 +122,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>In <a href="https://ian-p-mccabe.github.io/shirt-color-space/">Part 1</a> and <a href="https://ian-p-mccabe.github.io/shirt-color-space/part_2/">Part 2</a> we explored the issues facing the Stonewall Dodgeball league when selecting shirt colors. In Part 1 we found the best way to add additional colors to the league and in Part 2 we explored heuristics for finding the best subset of colors for the league so no two colors are too similar.</p>
 <p>Part 3 will expand on part 2, introducing proper optimization methods for color selection. We will begin by showing how to select the best (most diverse) colors for the league and then expand on this by taking into account team preference.</p>
 <p>I have decided to keep all code cells hidden for this writeup, but feel free to expand any of the codeblocks on this page (denoted by “&gt; Code”). All the source code can be found on my GitHub.</p>
-<div id="fd3fb58b" class="cell" data-execution_count="1">
+<div id="c5486243" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy</span>
@@ -146,7 +146,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The dodgeball league provides 103 unique shirt colors to pick from.</p>
 <p>Eagle eyed readers will see that there are 110 colors lsited below, however I have removed a few duplicate colors from the pool.</p>
 <p><img src="./assets/SolidColors.png" class="img-fluid" alt="Solid Colors"> <img src="./assets/HeatherColors.png" class="img-fluid" alt="Heather Colors"></p>
-<div id="d4437622" class="cell" data-execution_count="2">
+<div id="bf2b2ee7" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>lab_string <span class="op">=</span> <span class="bu">list</span>(color_df[<span class="st">"L*a*b Value"</span>])</span>
@@ -225,35 +225,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="g-col-6">
 <hr>
 <p>These two colors are <strong>2</strong> units apart:</p>
-<div id="fae7c1a4" class="cell" data-execution_count="3">
+<div id="4588b325" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> utils <span class="im">import</span> display_color_swatches</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>display_color_swatches(hex_colors<span class="op">=</span>[color_df.iloc[<span class="dv">8</span>][<span class="st">'Hex'</span>], color_df.iloc[<span class="dv">55</span>][<span class="st">'Hex'</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="33">
+<div class="cell-output cell-output-display" data-execution_count="3">
 <div style="display: flex; align-items: center; gap: 10px;"><div style="display: flex; gap: 2px;"><div title="423A31" style="width: 40px; height: 40px; background-color: #423A31; border: 1px solid #ccc;"></div><div title="454038" style="width: 40px; height: 40px; background-color: #454038; border: 1px solid #ccc;"></div></div></div>
 </div>
 </div>
 <hr>
 <p>These two colors are <strong>10</strong> units apart:</p>
-<div id="2b77e500" class="cell" data-execution_count="4">
+<div id="11b0d5a6" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>display_color_swatches([color_df.iloc[<span class="dv">0</span>][<span class="st">'Hex'</span>], color_df.iloc[<span class="dv">46</span>][<span class="st">'Hex'</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="34">
+<div class="cell-output cell-output-display" data-execution_count="4">
 <div style="display: flex; align-items: center; gap: 10px;"><div style="display: flex; gap: 2px;"><div title="4298B5" style="width: 40px; height: 40px; background-color: #4298B5; border: 1px solid #ccc;"></div><div title="00BFB2" style="width: 40px; height: 40px; background-color: #00BFB2; border: 1px solid #ccc;"></div></div></div>
 </div>
 </div>
 <hr>
 <p>These two colors are <strong>20</strong> units apart:</p>
-<div id="f21e7d37" class="cell" data-execution_count="5">
+<div id="f39f3d37" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>display_color_swatches([color_df.iloc[<span class="dv">1</span>][<span class="st">'Hex'</span>], color_df.iloc[<span class="dv">68</span>][<span class="st">'Hex'</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="35">
+<div class="cell-output cell-output-display" data-execution_count="5">
 <div style="display: flex; align-items: center; gap: 10px;"><div style="display: flex; gap: 2px;"><div title="555D51" style="width: 40px; height: 40px; background-color: #555D51; border: 1px solid #ccc;"></div><div title="48655B" style="width: 40px; height: 40px; background-color: #48655B; border: 1px solid #ccc;"></div></div></div>
 </div>
 </div>
@@ -262,23 +262,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="g-col-6">
 <hr>
 <p>These two colors are <strong>30</strong> units apart:</p>
-<div id="e88ea2d1" class="cell" data-execution_count="6">
+<div id="e6e60db3" class="cell" data-execution_count="6">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>display_color_swatches([color_df.iloc[<span class="dv">0</span>][<span class="st">'Hex'</span>], color_df.iloc[<span class="dv">1</span>][<span class="st">'Hex'</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="36">
+<div class="cell-output cell-output-display" data-execution_count="6">
 <div style="display: flex; align-items: center; gap: 10px;"><div style="display: flex; gap: 2px;"><div title="4298B5" style="width: 40px; height: 40px; background-color: #4298B5; border: 1px solid #ccc;"></div><div title="555D51" style="width: 40px; height: 40px; background-color: #555D51; border: 1px solid #ccc;"></div></div></div>
 </div>
 </div>
 <hr>
 <p>And these two colors are <strong>80</strong> units apart:</p>
-<div id="c9f32d41" class="cell" data-execution_count="7">
+<div id="1fc0fbd0" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>display_color_swatches([color_df.iloc[<span class="dv">6</span>][<span class="st">'Hex'</span>], color_df.iloc[<span class="dv">46</span>][<span class="st">'Hex'</span>]])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="37">
+<div class="cell-output cell-output-display" data-execution_count="7">
 <div style="display: flex; align-items: center; gap: 10px;"><div style="display: flex; gap: 2px;"><div title="C6057B" style="width: 40px; height: 40px; background-color: #C6057B; border: 1px solid #ccc;"></div><div title="00BFB2" style="width: 40px; height: 40px; background-color: #00BFB2; border: 1px solid #ccc;"></div></div></div>
 </div>
 </div>
@@ -302,7 +302,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>While these are fun approximations (especially the convex hull visual), they pale in comparison to the power of proper optimization methods.</p>
 <p>We will use Google’s <strong>Operations Research Tools Constraint Programming - SAT Solver</strong> to systematically explore solutions to our color diversity problem.</p>
 <p>The CP-SAT solver is flexible enough to enable us to explore the original <strong>maximum pairwise distance</strong> approach as well as other measures such as <strong>maximum minimum distance</strong>.</p>
-<div id="65d2aaae" class="cell" data-execution_count="8">
+<div id="3652fcc0" class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> build_distance_matrix():</span>
@@ -319,7 +319,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>distance_matrix <span class="op">=</span> build_distance_matrix()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="293c5162" class="cell" data-execution_count="9">
+<div id="c1be03d0" class="cell" data-execution_count="9">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>num_colors <span class="op">=</span> <span class="dv">103</span></span>
@@ -330,7 +330,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="maximum-pairwise-distance">Maximum Pairwise Distance</h2>
 <p>Continuing where we left off in part 2, lets find the subset of colors with the greatest pairwise distance. This is the same metric used in the random, greedy, and convex hull approaches.</p>
 <p>After letting the model run for 5 minutes, we get the following:</p>
-<div id="148fa6aa" class="cell" data-cache="false" data-execution_count="10">
+<div id="e1f9555c" class="cell" data-cache="false" data-execution_count="10">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> optimization <span class="im">import</span> ColorModel</span>
@@ -353,7 +353,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code>Variables created: 103</code></pre>
 </div>
 </div>
-<div id="fea039b4" class="cell" data-execution_count="11">
+<div id="b1fc23da" class="cell" data-execution_count="11">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># selected_colors.sort(key=lambda c: adjust_hue_for_rainbow(color_df.iloc[c]['Hex']))</span></span>
@@ -388,7 +388,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="maximize-the-minimum-distance" class="level2">
 <h2 class="anchored" data-anchor-id="maximize-the-minimum-distance">Maximize the Minimum Distance</h2>
 <p>We can run a similar optimization to the code above, however we tweak the objective function to maximize the minimum distance between any two points.</p>
-<div id="dac9b839" class="cell" data-execution_count="12">
+<div id="94d34923" class="cell" data-execution_count="12">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> random</span>
@@ -405,14 +405,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>max_minimum_colors, known_max_min <span class="op">=</span> max_minimum_model.solve(time_limit<span class="op">=</span><span class="dv">5</span>, log_progress<span class="op">=</span><span class="va">False</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>Selected colors: [0, 4, 8, 11, 12, 13, 16, 19, 23, 47, 53, 70, 72, 88, 97, 100]
+<pre><code>Selected colors: [4, 11, 12, 13, 18, 22, 29, 35, 46, 47, 61, 69, 88, 96, 100, 101]
 Minimum distance: 22
-Average distance: 43.65
+Average distance: 41.108333333333334
 Status: FEASIBLE</code></pre>
 </div>
 </div>
 <p>We now obtain a new palette:</p>
-<div id="9963ab30" class="cell" data-execution_count="13">
+<div id="9ceae8b2" class="cell" data-execution_count="13">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># max_minimum_colors.sort(key=lambda c: adjust_hue_for_rainbow(color_df.iloc[c]['Hex']))</span></span>
@@ -475,7 +475,7 @@ Status: FEASIBLE</code></pre>
 <h3 class="anchored" data-anchor-id="hybrid-approach---finding-the-best-of-the-best">Hybrid Approach - Finding the Best of the Best</h3>
 <p>Since the solution from the Maximum Minimum approach resulted in a max-min of 22 ∆E units, we can rerun the total distance solver with an additional constraint that all pairs must be at least 22 ∆E units apart.</p>
 <p>After running the solver we get the following result:</p>
-<div id="403a35a4" class="cell" data-execution_count="14">
+<div id="b33d4644" class="cell" data-execution_count="14">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>hybrid_solver <span class="op">=</span> ColorModel(num_colors, num_colors_to_select, distance_matrix)</span>
@@ -492,7 +492,7 @@ Status: OPTIMAL</code></pre>
 </div>
 </div>
 <p>And we obtain the following new palette</p>
-<div id="9f3d82d1" class="cell" data-execution_count="15">
+<div id="29588723" class="cell" data-execution_count="15">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>best_hybrid_colors.sort(key<span class="op">=</span><span class="kw">lambda</span> c: adjust_hue_for_rainbow(color_df.iloc[c][<span class="st">'Hex'</span>]))</span>
