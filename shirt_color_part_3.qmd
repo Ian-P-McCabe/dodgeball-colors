@@ -267,7 +267,7 @@ max_minimum_colors = [8, 12, 13, 16, 17, 19, 23, 31, 37, 47, 53, 70, 72, 86, 97,
 # optimal_paletts = max_minimum_model.max_min_solve_enumerate_optimal(max_solutions = 100000, known_optimal=22)
 # max_minimum_colors = random.choice(optimal_paletts)
 
-max_minimum_colors, known_max_min = max_minimum_model.solve(time_limit=5, log_progress=False)
+# max_minimum_colors, known_max_min = max_minimum_model.solve(time_limit=5, log_progress=False)
 
 ```
 
@@ -336,9 +336,11 @@ After running the solver we get the following result:
 
 hybrid_solver = ColorModel(num_colors, num_colors_to_select, distance_matrix)
 
-hybrid_solver.build_hybrid_model(optimal_max_min=known_max_min)
+# hybrid_solver.build_hybrid_model(optimal_max_min=known_max_min)
 
-best_hybrid_colors, _ = hybrid_solver.solve()
+best_hybrid_colors = [4, 8, 11, 12, 13, 16, 17, 19, 35, 47, 49, 53, 70, 72, 88, 100]
+
+# best_hybrid_colors, _ = hybrid_solver.solve()
 ```
 
 And we obtain the following new palette
